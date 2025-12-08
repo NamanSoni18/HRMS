@@ -1,0 +1,300 @@
+.attendance-page {
+    padding: 24px;
+}
+
+.attendance-page-header {
+    margin-bottom: 32px;
+}
+
+.attendance-page-header h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.attendance-page-header p {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.95rem;
+}
+
+.attendance-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.clock-section {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.live-clock-display {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.clock-time-large {
+    font-size: 3rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.clock-date {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1rem;
+}
+
+.late-warning {
+    margin-top: 16px;
+    padding: 10px 20px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    color: #ef4444;
+    font-size: 0.9rem;
+}
+
+.checkin-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.checkin-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.checkin-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.checkin-info > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.checkin-label {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.checkin-time {
+    font-size: 1.25rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.checkin-btn,
+.checkout-btn {
+    padding: 12px 28px;
+    border-radius: 10px;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.checkin-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+}
+
+.checkin-btn:hover:not(.disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.checkout-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+}
+
+.checkout-btn:hover:not(.disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+}
+
+.checkin-btn.disabled,
+.checkout-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.working-hours-display {
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.working-hours-display span {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.working-hours-display strong {
+    font-size: 1.5rem;
+    color: #a5b4fc;
+}
+
+.attendance-stats-section {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.attendance-stats-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.att-stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.att-stat-card.total {
+    border-left: 4px solid #6366f1;
+}
+
+.att-stat-card.present {
+    border-left: 4px solid #10b981;
+}
+
+.att-stat-card.present svg {
+    color: #10b981;
+}
+
+.att-stat-card.absent {
+    border-left: 4px solid #ef4444;
+}
+
+.att-stat-card.absent svg {
+    color: #ef4444;
+}
+
+.att-stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.att-stat-label {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.today-status-section {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.today-status-section h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.status-badge-large {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.status-badge-large.pending {
+    background: rgba(156, 163, 175, 0.15);
+    color: #9ca3af;
+    border: 1px solid rgba(156, 163, 175, 0.3);
+}
+
+.status-badge-large.working {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-badge-large.completed {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.status-badge-large.absent {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+@media (max-width: 900px) {
+    .attendance-main {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .stats-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .clock-time-large {
+        font-size: 2rem;
+    }
+    
+    .checkin-card {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+    
+    .checkin-info {
+        flex-direction: column;
+    }
+}

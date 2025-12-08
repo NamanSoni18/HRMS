@@ -1,0 +1,23 @@
+.salary-container {
+    padding: 20px;
+}
+
+.salary-header {
+    margin-bottom: 24px;
+}
+
+.salary-header h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.salary-header p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.95rem;
+}
+
+.salary-content {
+    padding: 24px;
+    min-height: 400px;
+}

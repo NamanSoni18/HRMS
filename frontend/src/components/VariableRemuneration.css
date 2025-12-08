@@ -1,0 +1,153 @@
+.remuneration-container {
+    padding: 2rem;
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.remuneration-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.remuneration-header h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.remuneration-header h3 {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.table-container {
+    overflow-x: auto;
+    margin-bottom: 2rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.remuneration-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1200px;
+}
+
+.remuneration-table th,
+.remuneration-table td {
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    vertical-align: middle;
+}
+
+.remuneration-table th {
+    background: rgba(255, 255, 255, 0.05);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.remuneration-table td {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.designation-cell {
+    white-space: pre-wrap;
+    text-align: left !important;
+    font-size: 0.85rem !important;
+    max-width: 300px;
+}
+
+.score-input {
+    width: 60px;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: #fff;
+    text-align: center;
+    font-family: inherit;
+}
+
+.score-input:focus {
+    outline: none;
+    border-color: #14b8a6;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.total-score {
+    font-weight: 700;
+    color: #14b8a6;
+}
+
+.percentage {
+    font-weight: 700;
+    color: #a855f7;
+}
+
+.recommended-amount {
+    font-weight: 700;
+    color: #10b981;
+}
+
+.criteria-section {
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.criteria-section h4 {
+    margin-bottom: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.criteria-table-wrapper {
+    width: 400px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.criteria-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.criteria-table th,
+.criteria-table td {
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.criteria-table th {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.certifications {
+    margin-bottom: 3rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.signature-section {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+.signature {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+}
