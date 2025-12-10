@@ -1,11 +1,15 @@
 .profile-edit-container {
     padding: 24px;
-    max-height: 100vh;
+    max-height: 100%;
     overflow-y: auto;
+    background-color: var(--bg-light);
 }
 
 .profile-edit-header {
     margin-bottom: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .back-btn {
@@ -14,30 +18,32 @@
     gap: 8px;
     background: transparent;
     border: none;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-light);
     cursor: pointer;
     font-size: 0.9rem;
     padding: 0;
-    margin-bottom: 16px;
     transition: color 0.2s;
+    width: fit-content;
 }
 
 .back-btn:hover {
-    color: #fff;
+    color: var(--primary-blue);
 }
 
 .profile-edit-header h2 {
     font-size: 1.8rem;
     font-weight: 600;
+    color: var(--primary-blue);
+    margin: 0;
 }
 
 .profile-edit-content {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--white);
     border-radius: 16px;
     padding: 32px;
     max-width: 900px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
 }
 
 .profile-avatar-section {
@@ -46,38 +52,41 @@
     align-items: center;
     margin-bottom: 32px;
     padding-bottom: 32px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .profile-avatar-large {
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background-color: var(--primary-blue);
+    color: var(--white);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 2rem;
     font-weight: 600;
     margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0, 51, 102, 0.2);
 }
 
 .change-avatar-btn {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #fff;
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    color: var(--text-dark);
     padding: 8px 16px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 0.85rem;
-    transition: background 0.2s;
+    transition: all 0.2s;
 }
 
 .change-avatar-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: #e9ecef;
+    border-color: var(--text-light);
 }
 
 .profile-form {
@@ -104,24 +113,26 @@
 
 .profile-form label {
     font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-dark);
+    font-weight: 500;
 }
 
 .profile-form input,
 .profile-form textarea {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: var(--white);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 12px 16px;
-    color: #fff;
+    color: var(--text-dark);
     font-size: 0.95rem;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .profile-form input:focus,
 .profile-form textarea:focus {
     outline: none;
-    border-color: #6366f1;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
 }
 
 .profile-form textarea {
@@ -132,7 +143,7 @@
 .documents-section {
     margin-top: 16px;
     padding-top: 24px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--border-color);
 }
 
 .documents-header {
@@ -145,24 +156,27 @@
 .documents-header h3 {
     font-size: 1.1rem;
     font-weight: 600;
+    color: var(--primary-blue);
+    margin: 0;
 }
 
 .upload-btn {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(99, 102, 241, 0.2);
-    border: 1px solid rgba(99, 102, 241, 0.4);
-    color: #a5b4fc;
-    padding: 10px 16px;
+    background-color: var(--white);
+    border: 1px solid var(--primary-blue);
+    color: var(--primary-blue);
+    padding: 8px 16px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 0.85rem;
     transition: all 0.2s;
+    font-weight: 500;
 }
 
 .upload-btn:hover {
-    background: rgba(99, 102, 241, 0.3);
+    background-color: #f0f7ff;
 }
 
 .documents-list {
@@ -173,9 +187,9 @@
     max-height: 300px;
     overflow-y: auto;
     padding: 16px;
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--bg-light);
     border-radius: 12px;
-    border: 1px dashed rgba(255, 255, 255, 0.1);
+    border: 1px dashed var(--border-color);
 }
 
 .no-documents {
@@ -184,13 +198,14 @@
     align-items: center;
     justify-content: center;
     height: 150px;
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--text-light);
     text-align: center;
 }
 
 .no-documents p {
     margin-top: 12px;
     font-size: 0.95rem;
+    font-weight: 500;
 }
 
 .no-documents span {
@@ -203,13 +218,15 @@
     align-items: center;
     gap: 14px;
     padding: 14px 16px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--white);
     border-radius: 10px;
-    transition: background 0.2s;
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s;
 }
 
 .document-item:hover {
-    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .doc-info {
@@ -222,11 +239,12 @@
 .doc-name {
     font-size: 0.9rem;
     font-weight: 500;
+    color: var(--text-dark);
 }
 
 .doc-meta {
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-light);
 }
 
 .doc-actions {
@@ -240,22 +258,24 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
+    background: transparent;
+    border: 1px solid var(--border-color);
     border-radius: 6px;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-light);
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .doc-action-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
+    background: var(--bg-light);
+    color: var(--primary-blue);
+    border-color: var(--primary-blue);
 }
 
 .doc-action-btn.delete:hover {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
+    background: #fff5f5;
+    color: #dc3545;
+    border-color: #dc3545;
 }
 
 .form-actions {
@@ -263,22 +283,24 @@
     justify-content: flex-end;
     gap: 16px;
     margin-top: 16px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
 }
 
 .cancel-btn {
     padding: 12px 24px;
     border-radius: 8px;
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: rgba(255, 255, 255, 0.7);
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    color: var(--text-dark);
     cursor: pointer;
     font-size: 0.95rem;
     transition: all 0.2s;
 }
 
 .cancel-btn:hover {
-    border-color: rgba(255, 255, 255, 0.4);
-    color: #fff;
+    background: var(--bg-light);
+    border-color: var(--text-light);
 }
 
 .save-btn {
@@ -287,29 +309,28 @@
     gap: 8px;
     padding: 12px 24px;
     border-radius: 8px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background-color: var(--accent-orange);
     border: none;
-    color: #fff;
+    color: var(--white);
     cursor: pointer;
     font-size: 0.95rem;
-    font-weight: 500;
-    transition: transform 0.2s, box-shadow 0.2s;
+    font-weight: 600;
+    transition: background-color 0.2s;
 }
 
 .save-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+    background-color: #e65c00;
 }
 
 @media (max-width: 600px) {
     .form-row {
         grid-template-columns: 1fr;
     }
-    
+
     .profile-edit-content {
         padding: 24px 16px;
     }
-    
+
     .documents-header {
         flex-direction: column;
         gap: 12px;

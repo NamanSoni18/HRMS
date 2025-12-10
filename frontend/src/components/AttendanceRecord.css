@@ -1,5 +1,7 @@
 .attendance-page {
     padding: 24px;
+    background-color: var(--bg-light);
+    min-height: 100%;
 }
 
 .attendance-page-header {
@@ -10,10 +12,11 @@
     font-size: 1.8rem;
     font-weight: 600;
     margin-bottom: 8px;
+    color: var(--primary-blue);
 }
 
 .attendance-page-header p {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-light);
     font-size: 0.95rem;
 }
 
@@ -25,15 +28,15 @@
 }
 
 .clock-section {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--white);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 32px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .live-clock-display {
@@ -41,27 +44,31 @@
     align-items: center;
     gap: 16px;
     margin-bottom: 12px;
+    color: var(--primary-blue);
 }
 
 .clock-time-large {
     font-size: 3rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+    color: var(--text-dark);
 }
 
 .clock-date {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-light);
     font-size: 1rem;
+    font-weight: 500;
 }
 
 .late-warning {
     margin-top: 16px;
     padding: 10px 20px;
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: #fff5f5;
+    border: 1px solid #feb2b2;
     border-radius: 8px;
-    color: #ef4444;
+    color: #c53030;
     font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .checkin-section {
@@ -71,14 +78,14 @@
 }
 
 .checkin-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--white);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .checkin-info {
@@ -87,7 +94,7 @@
     gap: 16px;
 }
 
-.checkin-info > div {
+.checkin-info>div {
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -95,57 +102,61 @@
 
 .checkin-label {
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-light);
+    font-weight: 500;
 }
 
 .checkin-time {
     font-size: 1.25rem;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
+    color: var(--text-dark);
 }
 
 .checkin-btn,
 .checkout-btn {
     padding: 12px 28px;
-    border-radius: 10px;
+    border-radius: 8px;
     border: none;
     font-size: 0.95rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
+    color: #fff;
 }
 
 .checkin-btn {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: #fff;
+    background-color: #10b981;
 }
 
 .checkin-btn:hover:not(.disabled) {
+    background-color: #059669;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .checkout-btn {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: #fff;
+    background-color: var(--accent-orange);
 }
 
 .checkout-btn:hover:not(.disabled) {
+    background-color: #e65c00;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
 }
 
 .checkin-btn.disabled,
 .checkout-btn.disabled {
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: not-allowed;
+    background-color: #9ca3af;
     transform: none;
     box-shadow: none;
 }
 
 .working-hours-display {
-    background: rgba(99, 102, 241, 0.1);
-    border: 1px solid rgba(99, 102, 241, 0.3);
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
     border-radius: 12px;
     padding: 20px;
     display: flex;
@@ -154,21 +165,22 @@
 }
 
 .working-hours-display span {
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--primary-blue);
+    font-weight: 500;
 }
 
 .working-hours-display strong {
     font-size: 1.5rem;
-    color: #a5b4fc;
+    color: var(--primary-blue);
 }
 
 .attendance-stats-section {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--white);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 24px;
     margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .attendance-stats-section h3 {
@@ -178,6 +190,7 @@
     font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 20px;
+    color: var(--text-dark);
 }
 
 .stats-cards {
@@ -187,18 +200,23 @@
 }
 
 .att-stat-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-light);
     border-radius: 12px;
     padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s;
+}
+
+.att-stat-card:hover {
+    transform: translateY(-2px);
 }
 
 .att-stat-card.total {
-    border-left: 4px solid #6366f1;
+    border-left: 4px solid var(--primary-blue);
 }
 
 .att-stat-card.present {
@@ -220,25 +238,28 @@
 .att-stat-number {
     font-size: 2rem;
     font-weight: 700;
+    color: var(--text-dark);
 }
 
 .att-stat-label {
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-light);
+    font-weight: 500;
 }
 
 .today-status-section {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--white);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .today-status-section h3 {
     font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 16px;
+    color: var(--text-dark);
 }
 
 .status-badge-large {
@@ -246,31 +267,31 @@
     padding: 12px 24px;
     border-radius: 10px;
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .status-badge-large.pending {
-    background: rgba(156, 163, 175, 0.15);
-    color: #9ca3af;
-    border: 1px solid rgba(156, 163, 175, 0.3);
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
 }
 
 .status-badge-large.working {
-    background: rgba(16, 185, 129, 0.15);
-    color: #10b981;
-    border: 1px solid rgba(16, 185, 129, 0.3);
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
 }
 
 .status-badge-large.completed {
-    background: rgba(99, 102, 241, 0.15);
-    color: #a5b4fc;
-    border: 1px solid rgba(99, 102, 241, 0.3);
+    background: #e0e7ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
 }
 
 .status-badge-large.absent {
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
 }
 
 @media (max-width: 900px) {
@@ -283,17 +304,17 @@
     .stats-cards {
         grid-template-columns: 1fr;
     }
-    
+
     .clock-time-large {
         font-size: 2rem;
     }
-    
+
     .checkin-card {
         flex-direction: column;
         gap: 16px;
         text-align: center;
     }
-    
+
     .checkin-info {
         flex-direction: column;
     }

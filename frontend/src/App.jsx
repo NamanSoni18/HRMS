@@ -39,9 +39,10 @@ function App() {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        background: '#1a1a2e'
+        background: 'var(--bg-light)',
+        color: 'var(--primary-blue)'
       }}>
-        <div style={{ color: '#fff', fontSize: '1.5rem' }}>Loading...</div>
+        <div>Loading...</div>
       </div>
     );
   }
@@ -51,54 +52,85 @@ function App() {
   }
 
   return (
-    <div style={{
-      backgroundImage: `url(${bgImage})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center 20%',
-      height: '100vh',
-      width: '100vw',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      fontFamily: "'Poppins', sans-serif"
-    }}>
-      <div className="container">
-        <div className="curved-shape"></div>
-        <div className="curved-shape2"></div>
+    <div className="app-container">
+      <header className="site-header">
+        <div className="header-logo">
+          <img src={logo} alt="NITRRFIE Logo" />
+          <div className="header-title">
+            <h1>NIT Raipur Foundation for Innovation & Entrepreneurship</h1>
+            <p>(A Section 8 Company under Companies Act, 2013)</p>
+          </div>
+        </div>
+      </header>
 
-        <div className="form-box Login">
-          <h2 className="animation" style={{ '--D': 0, '--S': 21 }}>Login</h2>
-          <form onSubmit={handleLogin}>
-            <div className="input-box animation" style={{ '--D': 1, '--S': 22 }}>
-              <input type="text" name="username" value={formData.username} onChange={handleInputChange} required disabled={isLoading} />
-              <label>Username</label>
-              <User className="icon" size={20} color="gray" />
-            </div>
-
-            <div className="input-box animation" style={{ '--D': 2, '--S': 23 }}>
-              <input type="password" name="password" value={formData.password} onChange={handleInputChange} required disabled={isLoading} />
-              <label>Password</label>
-              <Lock className="icon" size={20} color="gray" />
-            </div>
-
-            {error && (
-              <div className="error-message animation" style={{ '--D': 2.5, '--S': 23.5 }}>
-                {error}
+      <main className="main-content">
+        <div className="login-page">
+          <div className="login-container">
+            <div className="login-visual">
+              <div className="login-visual-content">
+                <h2>Welcome Back</h2>
+                <p>Human Resource Management System</p>
               </div>
-            )}
-
-            <div className="input-box animation" style={{ '--D': 3, '--S': 24 }}>
-              <button className="btn" type="submit" disabled={isLoading}>
-                {isLoading ? 'Logging in...' : 'Login'}
-              </button>
             </div>
-          </form>
-        </div>
+            
+            <div className="login-form-section">
+              <div className="login-header">
+                <h2>Login</h2>
+                <p>Please enter your credentials to access your account</p>
+              </div>
 
-        <div className="info-content Login">
-          <img src={logo} alt="NITRRFIE Logo" className="logo-overlay animation" style={{ '--D': 0, '--S': 20 }} />
+              <form onSubmit={handleLogin}>
+                <div className="form-group">
+                  <label>Username</label>
+                  <div className="input-wrapper">
+                    <User className="input-icon" size={18} />
+                    <input 
+                      type="text" 
+                      name="username" 
+                      value={formData.username} 
+                      onChange={handleInputChange} 
+                      required 
+                      disabled={isLoading}
+                      placeholder="Enter your username"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Password</label>
+                  <div className="input-wrapper">
+                    <Lock className="input-icon" size={18} />
+                    <input 
+                      type="password" 
+                      name="password" 
+                      value={formData.password} 
+                      onChange={handleInputChange} 
+                      required 
+                      disabled={isLoading}
+                      placeholder="Enter your password"
+                    />
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="error-message">
+                    {error}
+                  </div>
+                )}
+
+                <button className="submit-btn" type="submit" disabled={isLoading}>
+                  {isLoading ? 'Logging in...' : 'Login'}
+                </button>
+              </form>
+            </div>
+          </div>
         </div>
-      </div>
+      </main>
+
+      <footer className="site-footer">
+        <p>&copy; {new Date().getFullYear()} NIT Raipur Foundation for Innovation & Entrepreneurship. All Rights Reserved.</p>
+        <p>G.E. Road, Raipur, Chhattisgarh - 492010</p>
+      </footer>
     </div>
   )
 }

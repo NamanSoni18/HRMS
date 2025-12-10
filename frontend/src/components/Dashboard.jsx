@@ -54,11 +54,11 @@ const Dashboard = ({ onLogout }) => {
     }, []);
 
     const formatDateTime = () => {
-        return currentDateTime.toLocaleDateString('en-IN', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+        return currentDateTime.toLocaleDateString('en-IN', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
         }) + ' | ' + currentDateTime.toLocaleTimeString('en-IN', {
             hour: '2-digit',
             minute: '2-digit',
@@ -80,14 +80,14 @@ const Dashboard = ({ onLogout }) => {
         { id: 4, label: 'Pending Leaves', value: String(dashboardData.stats.pendingLeaves), color: 'rose' }
     ];
 
-    const employeeAttendance = dashboardData.employeeAttendance.length > 0 
-        ? dashboardData.employeeAttendance 
+    const employeeAttendance = dashboardData.employeeAttendance.length > 0
+        ? dashboardData.employeeAttendance
         : [
             { name: 'No attendance records', role: '', status: 'present', checkIn: '-' }
         ];
 
-    const activities = dashboardData.activities.length > 0 
-        ? dashboardData.activities 
+    const activities = dashboardData.activities.length > 0
+        ? dashboardData.activities
         : [
             { text: 'No recent activities', time: '', type: 'info' }
         ];
@@ -189,11 +189,6 @@ const Dashboard = ({ onLogout }) => {
 
     return (
         <div className="dashboard-wrapper">
-            {/* Background Elements */}
-            <div className="dash-bg-shape dash-shape-1"></div>
-            <div className="dash-bg-shape dash-shape-2"></div>
-            <div className="dash-bg-shape dash-shape-3"></div>
-
             <div className="app-layout">
                 {/* Sidebar */}
                 <aside className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
@@ -285,13 +280,27 @@ const Dashboard = ({ onLogout }) => {
 
                 {/* Main Content */}
                 <main className="main-content">
-                    <button
-                        className="sidebar-toggle"
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                    >
-                        <Menu size={24} color="white" />
-                    </button>
-                    {renderContent()}
+                    <header className="dashboard-top-bar">
+                        <button
+                            className="sidebar-toggle"
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        >
+                            <Menu size={24} />
+                        </button>
+                        <div className="top-bar-right">
+                            <span className="current-date">{formatDateTime()}</span>
+                            <div className="user-profile-preview">
+                                <div className="user-avatar">
+                                    {user?.username?.[0]?.toUpperCase() || 'U'}
+                                </div>
+                                <span className="user-name">{user?.username || 'User'}</span>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div className="content-area">
+                        {renderContent()}
+                    </div>
                 </main>
             </div>
         </div>

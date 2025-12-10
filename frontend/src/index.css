@@ -1,10 +1,18 @@
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+  /* Primary Colors based on NITRRFIE */
+  --primary-blue: #003366; /* Deep Blue */
+  --accent-orange: #FF6600; /* Orange Accent */
+  --text-dark: #333333;
+  --text-light: #666666;
+  --bg-light: #F9F9F9;
+  --white: #FFFFFF;
+  --border-color: #E0E0E0;
+
+  /* Typography */
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  line-height: 1.6;
   font-weight: 400;
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -16,11 +24,32 @@ body {
   padding: 0;
   min-width: 320px;
   min-height: 100vh;
-  width: 100vw;
-  overflow-x: hidden;
+  background-color: var(--bg-light);
+  color: var(--text-dark);
 }
 
 #root {
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.3s ease;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: inherit;
 }

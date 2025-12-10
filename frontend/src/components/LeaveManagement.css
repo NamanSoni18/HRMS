@@ -2,6 +2,8 @@
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
+    background-color: var(--bg-light);
+    min-height: 100%;
 }
 
 .leave-header {
@@ -11,18 +13,19 @@
 .leave-header h2 {
     font-size: 1.75rem;
     margin-bottom: 0.5rem;
-    color: #fff;
+    color: var(--primary-blue);
+    font-weight: 600;
 }
 
 .leave-header p {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-light);
 }
 
 .leave-tabs {
     display: flex;
     gap: 1rem;
     margin-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border-color);
     padding-bottom: 1rem;
 }
 
@@ -31,22 +34,25 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--white);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-light);
     cursor: pointer;
     transition: all 0.3s ease;
+    font-weight: 500;
 }
 
 .tab-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light);
+    color: var(--primary-blue);
+    border-color: var(--primary-blue);
 }
 
 .tab-btn.active {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border-color: transparent;
-    color: #fff;
+    background: var(--primary-blue);
+    border-color: var(--primary-blue);
+    color: var(--white);
 }
 
 .badge {
@@ -70,7 +76,8 @@
     color: #000 !important;
     font-size: 14px;
     line-height: 1.5;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
     border-radius: 4px;
 }
 
@@ -282,9 +289,9 @@
 }
 
 .print-btn {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border: none;
-    color: #fff;
+    background: var(--white);
+    border: 1px solid var(--primary-blue);
+    color: var(--primary-blue);
     padding: 1rem 2rem;
     border-radius: 10px;
     font-weight: 600;
@@ -292,17 +299,18 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    transition: transform 0.2s;
+    transition: all 0.2s;
 }
 
 .print-btn:hover {
+    background: #f0f7ff;
     transform: translateY(-2px);
 }
 
 .submit-btn {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
+    background: var(--primary-blue);
     border: none;
-    color: #fff;
+    color: var(--white);
     padding: 1rem 2rem;
     border-radius: 10px;
     font-weight: 600;
@@ -310,11 +318,13 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    transition: transform 0.2s;
+    transition: all 0.2s;
 }
 
 .submit-btn:hover {
+    background: #002244;
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 51, 102, 0.3);
 }
 
 .requests-section {
@@ -324,10 +334,11 @@
 }
 
 .request-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--white);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .request-card.pending {
@@ -348,7 +359,7 @@
     align-items: center;
     margin-bottom: 1rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .user-info {
@@ -360,7 +371,7 @@
 .avatar {
     width: 45px;
     height: 45px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: var(--primary-blue);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -370,33 +381,38 @@
 
 .user-info h4 {
     margin: 0;
-    color: #fff;
+    color: var(--text-dark);
+    font-weight: 600;
 }
 
 .desg {
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-light);
 }
 
 .status-badge {
     padding: 0.35rem 1rem;
     border-radius: 20px;
     font-size: 0.8rem;
+    font-weight: 500;
 }
 
 .status-badge.pending {
-    background: rgba(245, 158, 11, 0.2);
-    color: #f59e0b;
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #ffedd5;
 }
 
 .status-badge.approved {
-    background: rgba(34, 197, 94, 0.2);
-    color: #22c55e;
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #dcfce7;
 }
 
 .status-badge.rejected {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fee2e2;
 }
 
 .req-details {
@@ -418,14 +434,15 @@
 
 .lbl {
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-light);
 }
 
 .val {
-    color: #fff;
+    color: var(--text-dark);
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    font-weight: 500;
 }
 
 .req-actions {
@@ -433,7 +450,7 @@
     gap: 1rem;
     justify-content: flex-end;
     padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--border-color);
 }
 
 .approve-btn {
@@ -441,16 +458,19 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.6rem 1.25rem;
-    background: rgba(34, 197, 94, 0.2);
-    color: #22c55e;
-    border: 1px solid rgba(34, 197, 94, 0.3);
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
     border-radius: 8px;
     cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
 }
 
 .approve-btn:hover {
-    background: #22c55e;
+    background: #16a34a;
     color: #fff;
+    border-color: #16a34a;
 }
 
 .reject-btn {
@@ -458,41 +478,46 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.6rem 1.25rem;
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
     border-radius: 8px;
     cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
 }
 
 .reject-btn:hover {
-    background: #ef4444;
+    background: #dc2626;
     color: #fff;
+    border-color: #dc2626;
 }
 
 .no-requests {
     text-align: center;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-light);
     padding: 3rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--white);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
 }
 
 @media print {
     .no-print {
         display: none !important;
     }
-    
+
     .leave-container {
         padding: 0;
+        background: #fff;
     }
-    
+
     .document-page {
         box-shadow: none;
         padding: 20px;
+        border: none;
     }
-    
+
     .action-buttons {
         display: none !important;
     }
