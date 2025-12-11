@@ -226,7 +226,8 @@ const Dashboard = ({ onLogout }) => {
       case "salary":
         return <Salary />;
       case "peer-rating":
-        return <PeerRating />;
+        if(role !== "FACULTY_IN_CHARGE")
+            return <PeerRating />;
       case "efiling":
         return <EFiling />;
       case "settings":
