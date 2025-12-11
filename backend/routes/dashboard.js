@@ -3,67 +3,67 @@ const router = express.Router();
 const User = require('../models/User');
 const Attendance = require('../models/Attendance');
 const Leave = require('../models/Leave');
-const { protect, isAdminOrCEO } = require('../middleware/auth');
+const { protect, isManagement } = require('../middleware/auth');
 
-router.get('/', protect, isAdminOrCEO, async (req, res) => {
+router.get('/', protect, isManagement, async (req, res) => {
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
+
         const totalEmployees = await User.countDocuments({ role: { $ne: 'Admin' } });
-        
+
         const todayAttendance = await Attendance.find({
             date: today,
             status: 'present'
         });
         const presentToday = todayAttendance.length;
-        
+
         const onLeaveToday = await Attendance.countDocuments({
             date: today,
             status: 'on-leave'
         });
-        
+
         const pendingLeaves = await Leave.countDocuments({ status: 'pending' });
-        
+
         const attendanceWithUsers = await Attendance.find({ date: today })
             .populate('user', 'username profile.firstName profile.lastName employment.designation role')
             .sort({ checkInTime: -1 });
-        
+
         const employeeAttendance = attendanceWithUsers.map(att => ({
-            name: att.user?.profile?.firstName 
+            name: att.user?.profile?.firstName
                 ? `${att.user.profile.firstName} ${att.user.profile.lastName || ''}`
                 : att.user?.username || 'Unknown',
             role: att.user?.employment?.designation || att.user?.role || 'Employee',
             status: att.status,
-            checkIn: att.checkInTime 
+            checkIn: att.checkInTime
                 ? new Date(att.checkInTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
                 : '-'
         }));
-        
+
         const recentLeaves = await Leave.find()
             .populate('user', 'username profile.firstName profile.lastName')
             .populate('reviewedBy', 'username profile.firstName profile.lastName')
             .sort({ updatedAt: -1 })
             .limit(5);
-        
+
         const activities = [];
-        
+
         for (const att of attendanceWithUsers.slice(0, 3)) {
-            const name = att.user?.profile?.firstName 
+            const name = att.user?.profile?.firstName
                 ? `${att.user.profile.firstName} ${att.user.profile.lastName || ''}`
                 : att.user?.username;
             if (att.checkInTime) {
                 const timeDiff = Math.floor((new Date() - new Date(att.checkInTime)) / 60000);
                 activities.push({
                     text: `${name} marked attendance`,
-                    time: timeDiff < 60 ? `${timeDiff} mins ago` : `${Math.floor(timeDiff/60)} hours ago`,
+                    time: timeDiff < 60 ? `${timeDiff} mins ago` : `${Math.floor(timeDiff / 60)} hours ago`,
                     type: 'attendance'
                 });
             }
         }
-        
+
         for (const leave of recentLeaves) {
-            const name = leave.user?.profile?.firstName 
+            const name = leave.user?.profile?.firstName
                 ? `${leave.user.profile.firstName} ${leave.user.profile.lastName || ''}`
                 : leave.user?.username;
             if (leave.status === 'approved') {
@@ -80,13 +80,13 @@ router.get('/', protect, isAdminOrCEO, async (req, res) => {
                 });
             }
         }
-        
+
         activities.sort((a, b) => {
             const timeA = parseTimeAgo(a.time);
             const timeB = parseTimeAgo(b.time);
             return timeA - timeB;
         });
-        
+
         res.json({
             success: true,
             stats: {
@@ -107,9 +107,9 @@ function getTimeAgo(date) {
     if (!date) return 'recently';
     const diff = Math.floor((new Date() - new Date(date)) / 60000);
     if (diff < 60) return `${diff} mins ago`;
-    if (diff < 1440) return `${Math.floor(diff/60)} hours ago`;
-    if (diff < 10080) return `${Math.floor(diff/1440)} days ago`;
-    return `${Math.floor(diff/10080)} weeks ago`;
+    if (diff < 1440) return `${Math.floor(diff / 60)} hours ago`;
+    if (diff < 10080) return `${Math.floor(diff / 1440)} days ago`;
+    return `${Math.floor(diff / 10080)} weeks ago`;
 }
 
 function parseTimeAgo(timeStr) {
@@ -117,7 +117,7 @@ function parseTimeAgo(timeStr) {
     if (!match) return 0;
     const value = parseInt(match[1]);
     const unit = match[2];
-    switch(unit) {
+    switch (unit) {
         case 'min': return value;
         case 'hour': return value * 60;
         case 'day': return value * 1440;

@@ -72,4 +72,49 @@ router.get('/', protect, async (req, res) => {
     }
 });
 
+// @desc    Get average peer ratings for all employees for a specific month
+// @route   GET /api/peer-rating/averages
+// @access  Private
+router.get('/averages', protect, async (req, res) => {
+    try {
+        const { month, year } = req.query;
+
+        if (!month || !year) {
+            return res.status(400).json({ success: false, message: 'Month and year are required' });
+        }
+
+        const averages = await PeerRating.aggregate([
+            {
+                $match: {
+                    month: month,
+                    year: parseInt(year)
+                }
+            },
+            {
+                $project: {
+                    ratedEmployee: 1,
+                    totalScore: { $add: ["$responsiveness", "$teamSpirit"] }
+                }
+            },
+            {
+                $group: {
+                    _id: "$ratedEmployee",
+                    averageRating: { $avg: "$totalScore" }
+                }
+            }
+        ]);
+
+        // Convert array to map for easier lookup
+        const ratingMap = {};
+        averages.forEach(avg => {
+            ratingMap[avg._id] = parseFloat(avg.averageRating.toFixed(2));
+        });
+
+        res.status(200).json({ success: true, averages: ratingMap });
+    } catch (error) {
+        console.error('Error calculating averages:', error);
+        res.status(500).json({ success: false, message: 'Failed to calculate averages', error: error.message });
+    }
+});
+
 module.exports = router;

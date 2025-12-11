@@ -293,5 +293,33 @@ export const peerRatingAPI = {
             headers: { ...getAuthHeader() }
         });
         return response.json();
+    },
+
+    getAverageRatings: async (month, year) => {
+        const response = await fetch(`${API_URL}/peer-rating/averages?month=${month}&year=${year}`, {
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    }
+};
+
+export const variableRemunerationAPI = {
+    save: async (remunerationData, month, year) => {
+        const response = await fetch(`${API_URL}/variable-remuneration`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify({ remunerationData, month, year })
+        });
+        return response.json();
+    },
+
+    get: async (month, year) => {
+        const response = await fetch(`${API_URL}/variable-remuneration?month=${month}&year=${year}`, {
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
     }
 };

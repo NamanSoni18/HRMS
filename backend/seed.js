@@ -9,20 +9,28 @@ dotenv.config();
 const seedUsers = async () => {
     try {
         await connectDB();
-        
+
+        // Generate salt for password hashing
+        const salt = await bcrypt.genSalt(10);
+
+        // Hash passwords manually since findOneAndUpdate bypasses pre-save hook
+        const medhaPassword = await bcrypt.hash('medha', salt);
+        const sunilPassword = await bcrypt.hash('sunil', salt);
+        const ashokPassword = await bcrypt.hash('ashok', salt);
+        const anujPassword = await bcrypt.hash('anuj', salt);
+
         // Seed CEO
-        const existingCEO = await User.findOne({ username: 'medha' });
-        
-        if (!existingCEO) {
-            await User.create({
+        await User.findOneAndUpdate(
+            { username: 'medha' },
+            {
                 employeeId: 'NITR-CEO-001',
                 username: 'medha',
                 email: 'ceo@nitrrfie.com',
-                password: 'medha',
+                password: medhaPassword,
                 role: 'CEO',
                 profile: {
                     firstName: 'Medha',
-                    lastName: 'CEO',
+                    lastName: 'Singh',
                     phone: '9876543210',
                     address: {
                         street: 'NIT Raipur Campus',
@@ -49,28 +57,25 @@ const seedUsers = async () => {
                     casualLeave: 12,
                     onDutyLeave: 15,
                     leaveWithoutPay: 0
-                }
-            });
-            console.log('CEO user created successfully');
-            console.log('Username: medha');
-            console.log('Password: medha');
-        } else {
-            console.log('CEO user already exists');
-        }
-        
+                },
+                isActive: true
+            },
+            { upsert: true, new: true }
+        );
+        console.log('CEO user seeded successfully');
+
         // Seed Incubation Manager
-        const existingManager = await User.findOne({ username: 'sunil' });
-        
-        if (!existingManager) {
-            await User.create({
+        await User.findOneAndUpdate(
+            { username: 'sunil' },
+            {
                 employeeId: 'NITR-MGR-001',
                 username: 'sunil',
                 email: 'manager@nitrrfie.com',
-                password: 'sunil',
+                password: sunilPassword,
                 role: 'INCUBATION_MANAGER',
                 profile: {
                     firstName: 'Sunil',
-                    lastName: 'Manager',
+                    lastName: 'Dewangan',
                     phone: '9876543211',
                     address: {
                         street: 'NIT Raipur Campus',
@@ -97,28 +102,25 @@ const seedUsers = async () => {
                     casualLeave: 12,
                     onDutyLeave: 15,
                     leaveWithoutPay: 0
-                }
-            });
-            console.log('Incubation Manager user created successfully');
-            console.log('Username: sunil');
-            console.log('Password: sunil');
-        } else {
-            console.log('Incubation Manager user already exists');
-        }
-        
+                },
+                isActive: true
+            },
+            { upsert: true, new: true }
+        );
+        console.log('Incubation Manager user seeded successfully');
+
         // Seed Accountant
-        const existingAccountant = await User.findOne({ username: 'ashok' });
-        
-        if (!existingAccountant) {
-            await User.create({
+        await User.findOneAndUpdate(
+            { username: 'ashok' },
+            {
                 employeeId: 'NITR-ACC-001',
                 username: 'ashok',
                 email: 'accountant@nitrrfie.com',
-                password: 'ashok',
+                password: ashokPassword,
                 role: 'ACCOUNTANT',
                 profile: {
                     firstName: 'Ashok',
-                    lastName: 'Accountant',
+                    lastName: 'Kumar Sahu',
                     phone: '9876543212',
                     address: {
                         street: 'NIT Raipur Campus',
@@ -145,23 +147,21 @@ const seedUsers = async () => {
                     casualLeave: 12,
                     onDutyLeave: 15,
                     leaveWithoutPay: 0
-                }
-            });
-            console.log('Accountant user created successfully');
-            console.log('Username: ashok');
-            console.log('Password: ashok');
-        } else {
-            console.log('Accountant user already exists');
-        }
-        
-        const existingFacultyInCharge = await User.findOne({ username: 'anuj' });
-        
-        if (!existingFacultyInCharge) {
-            await User.create({
+                },
+                isActive: true
+            },
+            { upsert: true, new: true }
+        );
+        console.log('Accountant user seeded successfully');
+
+        // Seed Faculty In Charge
+        await User.findOneAndUpdate(
+            { username: 'anuj' },
+            {
                 employeeId: 'NITR-FIC-001',
                 username: 'anuj',
                 email: 'facultyincharge@nitrrfie.com',
-                password: 'anuj',
+                password: anujPassword,
                 role: 'FACULTY_IN_CHARGE',
                 profile: {
                     firstName: 'Anuj',
@@ -192,15 +192,13 @@ const seedUsers = async () => {
                     casualLeave: 12,
                     onDutyLeave: 15,
                     leaveWithoutPay: 0
-                }
-            });
-            console.log('Faculty In Charge user created successfully');
-            console.log('Username: anuj');
-            console.log('Password: anuj');
-        } else {
-            console.log('Faculty In Charge user already exists');
-        }
-        
+                },
+                isActive: true
+            },
+            { upsert: true, new: true }
+        );
+        console.log('Faculty In Charge user seeded successfully');
+
         process.exit(0);
     } catch (error) {
         console.error('Error seeding users:', error.message);

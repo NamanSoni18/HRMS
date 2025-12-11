@@ -3,7 +3,7 @@ const User = require('../models/User');
 
 const protect = async (req, res, next) => {
     let token;
-    
+
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             token = req.headers.authorization.split(' ')[1];
@@ -14,7 +14,7 @@ const protect = async (req, res, next) => {
             res.status(401).json({ message: 'Not authorized, token failed' });
         }
     }
-    
+
     if (!token) {
         res.status(401).json({ message: 'Not authorized, no token' });
     }
@@ -23,8 +23,8 @@ const protect = async (req, res, next) => {
 const authorize = (...roles) => {
     return (req, res, next) => {
         if (!roles.includes(req.user.role)) {
-            return res.status(403).json({ 
-                message: `Role ${req.user.role} is not authorized to access this resource` 
+            return res.status(403).json({
+                message: `Role ${req.user.role} is not authorized to access this resource`
             });
         }
         next();
@@ -33,9 +33,18 @@ const authorize = (...roles) => {
 
 const isAdminOrCEO = (req, res, next) => {
     if (req.user.role !== 'ADMIN' && req.user.role !== 'CEO') {
+
         return res.status(403).json({ message: 'Access denied. Admin or CEO only.' });
     }
     next();
 };
 
-module.exports = { protect, authorize, isAdminOrCEO };
+const isManagement = (req, res, next) => {
+    const managementRoles = ['ADMIN', 'CEO', 'FACULTY_IN_CHARGE'];
+    if (!managementRoles.includes(req.user.role)) {
+        return res.status(403).json({ message: 'Access denied. Management roles only.' });
+    }
+    next();
+};
+
+module.exports = { protect, authorize, isAdminOrCEO, isManagement };

@@ -68,15 +68,24 @@
 }
 
 .score-input {
-    width: 60px;
-    padding: 0.5rem;
+    width: 70px;
+
+    height: 38px;
+
+    padding: 4px 8px;
+
     background: #fff;
     border: 1px solid #ccc;
     border-radius: 4px;
     color: #000;
     text-align: center;
     font-family: inherit;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+
+    line-height: normal;
+
+    box-sizing: border-box;
+
     transition: all 0.2s ease;
 }
 
@@ -143,7 +152,7 @@
 
 .certifications {
     margin-bottom: 3rem;
-    color:#000;
+    color: #000;
     font-size: 0.9rem;
     line-height: 1.6;
 }
@@ -158,4 +167,64 @@
     text-align: center;
     color: #000;
     font-weight: 600;
+}
+
+.highlight-date {
+    font-weight: bold;
+    color: #000;
+}
+
+.remuneration-page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.remuneration-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: white !important;
+}
+
+.action-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.save-btn {
+    background-color: #10b981 !important;
+
+}
+
+.save-btn:hover:not(:disabled) {
+    background-color: #059669 !important;
+}
+
+.download-btn {
+    background-color: #3b82f6 !important;
+}
+
+.download-btn:hover {
+    background-color: #2563eb !important;
+}
+
+@media print {
+    .remuneration-actions {
+        display: none !important;
+    }
 }

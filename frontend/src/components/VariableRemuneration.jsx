@@ -1,31 +1,73 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './VariableRemuneration.css';
+import { usersAPI, peerRatingAPI, variableRemunerationAPI } from '../services/api';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { Download, Save } from 'lucide-react';
 
 const VariableRemuneration = () => {
-    const [employees, setEmployees] = useState([
-        {
-            id: 1,
-            name: "Mr. Sunil Dewangan",
-            designation: "Incubation Manager\n(Appoinment letter No. NITRR/CDC/NITRRFIE/2024/828 dated 09/08/2024)",
-            maxRemuneration: 10000,
-            punctuality: "",
-            sincerity: "",
-            responsiveness: "",
-            assignedTask: "",
-            peerRating: "",
-        },
-        {
-            id: 2,
-            name: "Mr. Ashok Sahu",
-            designation: "Accountant Cum Administrator\n(Appoinment letter No.NITRR/CDC/NITRRFIE/2024/833 dated 29/08/2024)",
-            maxRemuneration: 6000,
-            punctuality: "",
-            sincerity: "",
-            responsiveness: "",
-            assignedTask: "",
-            peerRating: "",
-        }
-    ]);
+    const [employees, setEmployees] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const contentRef = useRef(null);
+
+    // Get current month and year
+    const currentDate = new Date();
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+    const currentMonth = monthNames[currentDate.getMonth()];
+    const currentYear = currentDate.getFullYear();
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [usersResponse, ratingsResponse, savedResponse] = await Promise.all([
+                    usersAPI.getForPeerRating(),
+                    peerRatingAPI.getAverageRatings(currentMonth, currentYear),
+                    variableRemunerationAPI.get(currentMonth, currentYear)
+                ]);
+
+                if (usersResponse.success && usersResponse.users) {
+                    console.log('Fetched users:', usersResponse.users);
+
+                    const filteredUsers = usersResponse.users.filter(
+                        user => user.role !== 'FACULTY_IN_CHARGE' && user.role !== 'OFFICER_IN_CHARGE'
+                    );
+
+                    console.log('Filtered users:', filteredUsers);
+
+                    const averageRatings = ratingsResponse.success ? ratingsResponse.averages : {};
+                    const savedRemuneration = savedResponse.success ? savedResponse.remunerationMap : {};
+
+                    const mappedEmployees = filteredUsers.map(user => {
+                        const savedData = savedRemuneration[user._id];
+                        // If saved data exists, use it. But for peerRating, always use the fresh calculated average.
+                        // This ensures that if peer ratings change, they are reflected here even if other fields were saved.
+
+                        return {
+                            id: user._id,
+                            name: `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim() || user.username,
+                            designation: user.employment?.designation || user.role,
+                            maxRemuneration: 10000, // Default
+                            punctuality: savedData?.punctuality ?? "",
+                            sincerity: savedData?.sincerity ?? "",
+                            responsiveness: savedData?.responsiveness ?? "",
+                            assignedTask: savedData?.assignedTask ?? "",
+                            peerRating: (averageRatings[user._id] !== undefined) ? averageRatings[user._id] : (savedData?.peerRating || 0),
+                        };
+                    });
+
+                    setEmployees(mappedEmployees);
+                }
+            } catch (error) {
+                console.error('Failed to fetch data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
 
     const calculateTotalScore = (emp) => {
         const p = parseFloat(emp.punctuality) || 0;
@@ -55,135 +97,243 @@ const VariableRemuneration = () => {
         ));
     };
 
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            const remunerationData = employees.map(emp => {
+                const totalScore = calculateTotalScore(emp);
+                const percentage = calculatePercentage(totalScore);
+                const amount = (emp.maxRemuneration * percentage) / 100;
+
+                return {
+                    employeeId: emp.id,
+                    punctuality: emp.punctuality,
+                    sincerity: emp.sincerity,
+                    responsiveness: emp.responsiveness,
+                    assignedTask: emp.assignedTask,
+                    peerRating: emp.peerRating,
+                    totalScore,
+                    percentage,
+                    amount
+                };
+            });
+
+            await variableRemunerationAPI.save(remunerationData, currentMonth, currentYear);
+            alert('Remuneration data saved successfully!');
+        } catch (error) {
+            console.error('Save failed:', error);
+            alert('Failed to save data. Please try again.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDownloadPDF = () => {
+        if (!contentRef.current) return;
+
+
+        const actionsDiv = document.querySelector('.remuneration-actions');
+        if (actionsDiv) actionsDiv.style.display = 'none';
+
+
+        const originalStyle = {
+            width: contentRef.current.style.width,
+            maxWidth: contentRef.current.style.maxWidth,
+            overflow: contentRef.current.style.overflow
+        };
+
+        const tableContainer = contentRef.current.querySelector('.table-container');
+        const originalTableStyle = {
+            overflow: tableContainer ? tableContainer.style.overflow : '',
+            maxWidth: tableContainer ? tableContainer.style.maxWidth : ''
+        };
+
+
+        contentRef.current.style.width = 'fit-content';
+        contentRef.current.style.maxWidth = 'none';
+        contentRef.current.style.overflow = 'visible';
+
+        if (tableContainer) {
+            tableContainer.style.overflow = 'visible';
+            tableContainer.style.maxWidth = 'none';
+        }
+
+
+        setTimeout(() => {
+            html2canvas(contentRef.current, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                windowWidth: contentRef.current.scrollWidth,
+                windowHeight: contentRef.current.scrollHeight
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+
+
+
+                const pdf = new jsPDF({
+                    orientation: canvas.width > canvas.height ? 'l' : 'p',
+                    unit: 'px',
+                    format: [canvas.width, canvas.height]
+                });
+
+                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                pdf.save(`Variable_Remuneration_${currentMonth}_${currentYear}.pdf`);
+
+
+                if (actionsDiv) actionsDiv.style.display = 'flex';
+
+                contentRef.current.style.width = originalStyle.width;
+                contentRef.current.style.maxWidth = originalStyle.maxWidth;
+                contentRef.current.style.overflow = originalStyle.overflow;
+
+                if (tableContainer) {
+                    tableContainer.style.overflow = originalTableStyle.overflow;
+                    tableContainer.style.maxWidth = originalTableStyle.maxWidth;
+                }
+            }).catch(err => {
+                console.error('PDF generation failed:', err);
+
+                if (actionsDiv) actionsDiv.style.display = 'flex';
+
+                contentRef.current.style.width = originalStyle.width;
+                contentRef.current.style.maxWidth = originalStyle.maxWidth;
+                contentRef.current.style.overflow = originalStyle.overflow;
+
+                if (tableContainer) {
+                    tableContainer.style.overflow = originalTableStyle.overflow;
+                    tableContainer.style.maxWidth = originalTableStyle.maxWidth;
+                }
+            });
+        }, 100);
+    };
+
     return (
-        <div className="remuneration-container">
-            <div className="remuneration-header">
-                <h2>NIT Raipur Foundation for Innovation & Entrepreneurship (NITRR-FIE)</h2>
-                <h3>Variable Remuneration of Contractual Employees for the Month June 2025</h3>
+        <div className="remuneration-page-container">
+            <div className="remuneration-actions">
+                <button
+                    className="action-btn save-btn"
+                    onClick={handleSave}
+                    disabled={saving}
+                >
+                    <Save size={18} />
+                    {saving ? 'Saving...' : 'Save Ratings'}
+                </button>
+                <button
+                    className="action-btn download-btn"
+                    onClick={handleDownloadPDF}
+                >
+                    <Download size={18} />
+                    Download PDF
+                </button>
             </div>
 
-            <div className="table-container">
-                <table className="remuneration-table">
-                    <thead>
-                        <tr>
-                            <th>S.No.</th>
-                            <th>Name</th>
-                            <th>Designation / Engagement</th>
-                            <th>Maximum Variable Remuneration (In Rs.)</th>
-                            <th>Punctuality (Out of 20)</th>
-                            <th>Sincerity (Out of 20)</th>
-                            <th>Responsiveness (Out of 20)</th>
-                            <th>Assigned Task (Out of 20)</th>
-                            <th>Peer Rating (Out of 20)</th>
-                            <th>Total Score (Out of 100)</th>
-                            <th>Total % of Variable Remuneration Recommended</th>
-                            <th>Variable Remuneration Recommended (in Rs.)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {employees.map((emp, index) => {
-                            const totalScore = calculateTotalScore(emp);
-                            const percentage = calculatePercentage(totalScore);
-                            const recommendedAmount = (emp.maxRemuneration * percentage) / 100;
+            <div className="remuneration-container" ref={contentRef}>
+                <div className="remuneration-header">
+                    <h2>NIT Raipur Foundation for Innovation & Entrepreneurship (NITRR-FIE)</h2>
+                    <h3>Variable Remuneration of Contractual Employees for the Month <span className="highlight-date">{currentMonth} {currentYear}</span></h3>
+                </div>
 
-                            return (
-                                <tr key={emp.id}>
-                                    <td>{index + 1}</td>
-                                    <td>{emp.name}</td>
-                                    <td className="designation-cell">{emp.designation}</td>
-                                    <td>{emp.maxRemuneration.toFixed(2)}</td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            className="score-input"
-                                            value={emp.punctuality}
-                                            onChange={(e) => handleScoreChange(emp.id, 'punctuality', e.target.value)}
-                                            max="20"
-                                            min="0"
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            className="score-input"
-                                            value={emp.sincerity}
-                                            onChange={(e) => handleScoreChange(emp.id, 'sincerity', e.target.value)}
-                                            max="20"
-                                            min="0"
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            className="score-input"
-                                            value={emp.responsiveness}
-                                            onChange={(e) => handleScoreChange(emp.id, 'responsiveness', e.target.value)}
-                                            max="20"
-                                            min="0"
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            className="score-input"
-                                            value={emp.assignedTask}
-                                            onChange={(e) => handleScoreChange(emp.id, 'assignedTask', e.target.value)}
-                                            max="20"
-                                            min="0"
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            className="score-input"
-                                            value={emp.peerRating}
-                                            onChange={(e) => handleScoreChange(emp.id, 'peerRating', e.target.value)}
-                                            max="20"
-                                            min="0"
-                                        />
-                                    </td>
-                                    <td className="total-score">{totalScore}</td>
-                                    <td className="percentage">{percentage}%</td>
-                                    <td className="recommended-amount">{recommendedAmount.toFixed(2)}</td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
-
-            <div className="criteria-section">
-                <h4>Note: Criteria for evaluation of % of Variable Remuneration Recommended is given below</h4>
-                <div className="criteria-table-wrapper">
-                    <table className="criteria-table">
+                <div className="table-container">
+                    <table className="remuneration-table">
                         <thead>
                             <tr>
-                                <th>Total Score</th>
-                                <th>% Variable Remuneration</th>
+                                <th>S.No.</th>
+                                <th>Name</th>
+                                <th>Designation / Engagement</th>
+                                <th>Maximum Variable Remuneration (In Rs.)</th>
+                                <th>Punctuality (Out of 20)</th>
+                                <th>Sincerity (Out of 20)</th>
+                                <th>Responsiveness (Out of 20)</th>
+                                <th>Assigned Task (Out of 20)</th>
+                                <th>Peer Rating (Out of 20)</th>
+                                <th>Total Score (Out of 100)</th>
+                                <th>Total % of Variable Remuneration Recommended</th>
+                                <th>Variable Remuneration Recommended (in Rs.)</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td>Above 80</td><td>100%</td></tr>
-                            <tr><td>80-60</td><td>90%</td></tr>
-                            <tr><td>60-50</td><td>80%</td></tr>
-                            <tr><td>50-40</td><td>50%</td></tr>
-                            <tr><td>40-30</td><td>40%</td></tr>
-                            <tr><td>Below 30</td><td>30%</td></tr>
+                            {employees.map((emp, index) => {
+                                const totalScore = calculateTotalScore(emp);
+                                const percentage = calculatePercentage(totalScore);
+                                const recommendedAmount = (emp.maxRemuneration * percentage) / 100;
+
+                                return (
+                                    <tr key={emp.id}>
+                                        <td>{index + 1}</td>
+                                        <td>{emp.name}</td>
+                                        <td className="designation-cell">{emp.designation}</td>
+                                        <td>{emp.maxRemuneration.toFixed(2)}</td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                className="score-input"
+                                                value={emp.punctuality}
+                                                onChange={(e) => handleScoreChange(emp.id, 'punctuality', e.target.value)}
+                                                max="20"
+                                                min="0"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                className="score-input"
+                                                value={emp.sincerity}
+                                                onChange={(e) => handleScoreChange(emp.id, 'sincerity', e.target.value)}
+                                                max="20"
+                                                min="0"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                className="score-input"
+                                                value={emp.responsiveness}
+                                                onChange={(e) => handleScoreChange(emp.id, 'responsiveness', e.target.value)}
+                                                max="20"
+                                                min="0"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                className="score-input"
+                                                value={emp.assignedTask}
+                                                onChange={(e) => handleScoreChange(emp.id, 'assignedTask', e.target.value)}
+                                                max="20"
+                                                min="0"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                className="score-input"
+                                                value={emp.peerRating}
+                                                readOnly
+                                                style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                                            />
+                                        </td>
+                                        <td className="total-score">{totalScore}</td>
+                                        <td className="percentage">{percentage}%</td>
+                                        <td className="recommended-amount">{recommendedAmount.toFixed(2)}</td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
-            </div>
 
-            <div className="certifications">
-                <p>1) Certified that the above employee(s) have delivered their duty satisfactorily during the mentioned month.</p>
-                <p>2) Certified that Approval of Competent Authority is available for deployment of above employees.</p>
-                <p>3) Forwarded to the concerned team for the release of Variable Remuneration to the above employee(s) as per rating and recommendation.</p>
-            </div>
+                <div className="certifications">
+                    <p>1) Certified that the above employee(s) have delivered their duty satisfactorily during the mentioned month.</p>
+                    <p>2) Certified that Approval of Competent Authority is available for deployment of above employees.</p>
+                    <p>3) Forwarded to the concerned team for the release of Variable Remuneration to the above employee(s) as per rating and recommendation.</p>
+                </div>
 
-            <div className="signature-section">
-                <div className="signature">
-                    <p>Faculty In-Charge</p>
-                    <p>Incubation Cell, NIT Raipur</p>
+                <div className="signature-section">
+                    <div className="signature">
+                        <p>Faculty In-Charge</p>
+                        <p>Incubation Cell, NIT Raipur</p>
+                    </div>
                 </div>
             </div>
         </div>

@@ -128,7 +128,6 @@
 .download-section {
     display: flex;
     justify-content: center;
-    /* Center the button for better UX */
     margin-top: 1rem;
 }
 
@@ -146,7 +145,6 @@
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: 'Inter', sans-serif;
-    /* Use UI font for button */
 }
 
 .download-btn:hover {
