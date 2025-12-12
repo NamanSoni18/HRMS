@@ -324,3 +324,12 @@ export const variableRemunerationAPI = {
         return response.json();
     }
 };
+
+export const remunerationAPI = {
+    getAttendanceSummary: async (month, year) => {
+        const response = await fetch(`${API_URL}/remuneration/attendance-summary?month=${month}&year=${year}`, {
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    }
+};

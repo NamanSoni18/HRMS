@@ -17,6 +17,7 @@ import { useAuth } from "../context/AuthContext";
 import { ROLES, ROLE_HIERARCHY } from "../constants/roles";
 import { dashboardAPI } from "../services/api";
 import VariableRemuneration from "./VariableRemuneration";
+import Remuneration from "./Remuneration";
 import PeerRating from "./PeerRating";
 import AttendanceRecord from "./AttendanceRecord";
 import LeaveManagement from "./LeaveManagement";
@@ -122,13 +123,13 @@ const Dashboard = ({ onLogout }) => {
     dashboardData.employeeAttendance.length > 0
       ? dashboardData.employeeAttendance
       : [
-          {
-            name: "No attendance records",
-            role: "",
-            status: "present",
-            checkIn: "-",
-          },
-        ];
+        {
+          name: "No attendance records",
+          role: "",
+          status: "present",
+          checkIn: "-",
+        },
+      ];
 
   const activities =
     dashboardData.activities.length > 0
@@ -229,6 +230,8 @@ const Dashboard = ({ onLogout }) => {
         return <PeerRating />;
       case "variable-remuneration":
         return <VariableRemuneration />;
+      case "remuneration":
+        return <Remuneration />;
       case "efiling":
         return <EFiling />;
       case "settings":
@@ -252,9 +255,8 @@ const Dashboard = ({ onLogout }) => {
 
           <nav className="sidebar-nav">
             <button
-              className={`nav-item ${
-                activeView === "dashboard" ? "active" : ""
-              }`}
+              className={`nav-item ${activeView === "dashboard" ? "active" : ""
+                }`}
               onClick={() => setActiveView("dashboard")}
             >
               <LayoutDashboard size={20} />
@@ -262,9 +264,8 @@ const Dashboard = ({ onLogout }) => {
             </button>
             {isManagerLevel && (
               <button
-                className={`nav-item ${
-                  activeView === "employees" ? "active" : ""
-                }`}
+                className={`nav-item ${activeView === "employees" ? "active" : ""
+                  }`}
                 onClick={() => setActiveView("employees")}
               >
                 <Users size={20} />
@@ -273,9 +274,8 @@ const Dashboard = ({ onLogout }) => {
             )}
             {isManagerLevel && (
               <button
-                className={`nav-item ${
-                  activeView === "attendance" ? "active" : ""
-                }`}
+                className={`nav-item ${activeView === "attendance" ? "active" : ""
+                  }`}
                 onClick={() => setActiveView("attendance")}
               >
                 <CalendarCheck size={20} />
@@ -293,9 +293,8 @@ const Dashboard = ({ onLogout }) => {
             )}
             {isManagerLevel && (
               <button
-                className={`nav-item ${
-                  activeView === "salary" ? "active" : ""
-                }`}
+                className={`nav-item ${activeView === "salary" ? "active" : ""
+                  }`}
                 onClick={() => setActiveView("salary")}
               >
                 <DollarSign size={20} />
@@ -304,9 +303,8 @@ const Dashboard = ({ onLogout }) => {
             )}
             {isManagerLevel && role !== "FACULTY_IN_CHARGE" && (
               <button
-                className={`nav-item ${
-                  activeView === "peer-rating" ? "active" : ""
-                }`}
+                className={`nav-item ${activeView === "peer-rating" ? "active" : ""
+                  }`}
                 onClick={() => setActiveView("peer-rating")}
               >
                 <Star size={20} />
@@ -315,9 +313,8 @@ const Dashboard = ({ onLogout }) => {
             )}
             {isManagerLevel && role === "FACULTY_IN_CHARGE" && (
               <button
-                className={`nav-item ${
-                  activeView === "variable-remuneration" ? "active" : ""
-                }`}
+                className={`nav-item ${activeView === "variable-remuneration" ? "active" : ""
+                  }`}
                 onClick={() => setActiveView("variable-remuneration")}
               >
                 <Star size={20} />
@@ -326,9 +323,18 @@ const Dashboard = ({ onLogout }) => {
             )}
             {isManagerLevel && (
               <button
-                className={`nav-item ${
-                  activeView === "efiling" ? "active" : ""
-                }`}
+                className={`nav-item ${activeView === "remuneration" ? "active" : ""
+                  }`}
+                onClick={() => setActiveView("remuneration")}
+              >
+                <FileText size={20} />
+                {isSidebarOpen && <span>Remuneration</span>}
+              </button>
+            )}
+            {isManagerLevel && (
+              <button
+                className={`nav-item ${activeView === "efiling" ? "active" : ""
+                  }`}
                 onClick={() => setActiveView("efiling")}
               >
                 <FolderOpen size={20} />
@@ -337,9 +343,8 @@ const Dashboard = ({ onLogout }) => {
             )}
             {isManagerLevel && (
               <button
-                className={`nav-item ${
-                  activeView === "settings" ? "active" : ""
-                }`}
+                className={`nav-item ${activeView === "settings" ? "active" : ""
+                  }`}
                 onClick={() => setActiveView("settings")}
               >
                 <SettingsIcon size={20} />
