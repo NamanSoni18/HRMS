@@ -1,0 +1,279 @@
+.remuneration-page-container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.month-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.month-nav-btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.month-nav-btn:hover:not(:disabled) {
+    background: #2563eb;
+}
+
+.month-nav-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+.month-display {
+    font-size: 1.2rem;
+    font-weight: 600;
+    min-width: 180px;
+    text-align: center;
+}
+
+.loading-state,
+.current-month-notice {
+    text-align: center;
+    padding: 3rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    color: #64748b;
+}
+
+.current-month-notice p {
+    margin: 0.5rem 0;
+}
+
+.remuneration-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: white !important;
+}
+
+.action-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.save-btn {
+    background-color: #10b981 !important;
+}
+
+.save-btn:hover:not(:disabled) {
+    background-color: #059669 !important;
+}
+
+.download-btn {
+    background-color: #3b82f6 !important;
+}
+
+.download-btn:hover {
+    background-color: #2563eb !important;
+}
+
+.remuneration-container {
+    padding: 1.5rem;
+    color: #000;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.remuneration-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.remuneration-header h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: #000;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.remuneration-header h3 {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #000;
+}
+
+.highlight-date {
+    font-weight: bold;
+    color: #000;
+}
+
+.table-container {
+    overflow-x: auto;
+    margin-bottom: 2rem;
+}
+
+.remuneration-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.7rem;
+}
+
+.remuneration-table th,
+.remuneration-table td {
+    padding: 0.4rem 0.2rem;
+    border: 1px solid #000;
+    text-align: center;
+    vertical-align: top;
+}
+
+.remuneration-table th {
+    background: #f5f5f5;
+    font-weight: bold;
+    font-size: 0.65rem;
+    color: #000;
+    vertical-align: middle;
+}
+
+.remuneration-table td {
+    font-size: 0.7rem;
+    color: #000;
+}
+
+.name-cell {
+    text-align: left !important;
+    font-weight: bold;
+    min-width: 100px;
+}
+
+.designation-cell {
+    text-align: left !important;
+    font-size: 0.65rem;
+    min-width: 140px;
+}
+
+.appointment-details {
+    font-size: 0.6rem;
+    color: #333;
+    display: block;
+    margin-top: 4px;
+}
+
+.gross-cell {
+    text-align: left !important;
+    font-size: 0.65rem;
+    min-width: 150px;
+}
+
+.gross-details {
+    font-size: 0.55rem;
+    color: #333;
+    white-space: pre-line;
+    display: block;
+    margin-top: 4px;
+}
+
+.pan-cell {
+    font-size: 0.55rem;
+    text-align: left !important;
+    min-width: 130px;
+}
+
+.pan-cell pre {
+    margin: 0;
+    font-family: inherit;
+    font-size: 0.55rem;
+    white-space: pre-line;
+}
+
+.score-input {
+    width: 70px;
+    min-width: 70px;
+    height: 28px;
+    padding: 4px 8px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    color: #000;
+    text-align: right;
+    font-family: inherit;
+    font-size: 0.8rem;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+.wide-input {
+    width: 90px;
+    min-width: 90px;
+}
+
+.score-input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.score-input:focus {
+    outline: none;
+    border-color: #003366;
+}
+
+.totals-row {
+    background-color: #f9f9f9;
+    font-weight: bold;
+}
+
+.certifications {
+    margin-bottom: 2rem;
+    color: #000;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.certifications p {
+    margin-bottom: 0.5rem;
+}
+
+.signature-section-full {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 3rem;
+    padding-top: 2rem;
+}
+
+.signature {
+    text-align: center;
+    color: #000;
+    font-size: 0.85rem;
+}
+
+.signature p {
+    margin: 0.25rem 0;
+}
+
+@media print {
+    .remuneration-actions {
+        display: none !important;
+    }
+}

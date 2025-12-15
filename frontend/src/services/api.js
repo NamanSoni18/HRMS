@@ -23,6 +23,7 @@ export const authAPI = {
     },
 
     register: async (userData) => {
+        console.log('Registering user with data:', userData);
         const response = await fetch(`${API_URL}/auth/register`, {
             method: 'POST',
             headers: {
@@ -318,6 +319,15 @@ export const variableRemunerationAPI = {
 
     get: async (month, year) => {
         const response = await fetch(`${API_URL}/variable-remuneration?month=${month}&year=${year}`, {
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    }
+};
+
+export const remunerationAPI = {
+    getAttendanceSummary: async (month, year) => {
+        const response = await fetch(`${API_URL}/remuneration/attendance-summary?month=${month}&year=${year}`, {
             headers: { ...getAuthHeader() }
         });
         return response.json();
