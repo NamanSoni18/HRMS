@@ -11,6 +11,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+    color: black;
 }
 
 .header-title h2 {
@@ -19,7 +20,6 @@
     margin-bottom: 0.5rem;
     background: linear-gradient(90deg, #fff, rgba(255, 255, 255, 0.7));
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
 }
 
 .header-title p {
