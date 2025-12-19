@@ -46,6 +46,21 @@ const fileTransferSchema = new mongoose.Schema({
     },
     readAt: {
         type: Date
+    },
+    // Threading fields
+    parentTransferId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'FileTransfer',
+        default: null
+    },
+    threadId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'FileTransfer',
+        default: null
+    },
+    isForwarded: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true

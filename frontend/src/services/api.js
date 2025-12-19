@@ -273,6 +273,25 @@ export const efilingAPI = {
             headers: { ...getAuthHeader() }
         });
         return response.json();
+    },
+
+    forwardFile: async (data) => {
+        const response = await fetch(`${API_URL}/efiling/forward`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify(data)
+        });
+        return response.json();
+    },
+
+    getFileThread: async (id) => {
+        const response = await fetch(`${API_URL}/efiling/track/${id}`, {
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
     }
 };
 

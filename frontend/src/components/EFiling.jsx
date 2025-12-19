@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { 
-    Send, Inbox, Clock, History, Upload, FileText, User, Download, 
+import {
+    Send, Inbox, Clock, History, Upload, FileText, User, Download,
     Check, CheckCheck, Search, Filter, X, Paperclip, ChevronDown,
-    File, Image, FileSpreadsheet, Presentation, Archive, AlertCircle
+    File, Image, FileSpreadsheet, Presentation, Archive, AlertCircle, Activity,
+    ArrowRight, MapPin, GitCommit
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { efilingAPI, usersAPI } from '../services/api';
@@ -14,11 +15,15 @@ const EFiling = () => {
     const [loading, setLoading] = useState(false);
     const [employees, setEmployees] = useState([]);
     const [inbox, setInbox] = useState([]);
-    const [sent, setSent] = useState([]);
+    const [trackedFiles, setTrackedFiles] = useState([]);
+    const [selectedThread, setSelectedThread] = useState(null);
+    const [isForwarding, setIsForwarding] = useState(false);
+    const [forwardFileId, setForwardFileId] = useState(null);
+
     const [history, setHistory] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [historyFilter, setHistoryFilter] = useState('');
-    
+
     // Send form state
     const [selectedFile, setSelectedFile] = useState(null);
     const [selectedRecipient, setSelectedRecipient] = useState('');
@@ -34,7 +39,7 @@ const EFiling = () => {
 
     useEffect(() => {
         if (activeTab === 'inbox') fetchInbox();
-        else if (activeTab === 'sent') fetchSent();
+        else if (activeTab === 'track') fetchTrackedFiles();
         else if (activeTab === 'history') fetchHistory();
     }, [activeTab, historyFilter]);
 
@@ -42,7 +47,7 @@ const EFiling = () => {
         try {
             const data = await usersAPI.getForPeerRating();
             if (data.success) {
-                const others = data.users.filter(emp => 
+                const others = data.users.filter(emp =>
                     emp._id !== user?.id && emp.username !== user?.username
                 );
                 setEmployees(others);
@@ -76,13 +81,15 @@ const EFiling = () => {
         }
     };
 
-    const fetchSent = async () => {
+
+
+    const fetchTrackedFiles = async () => {
         setLoading(true);
         try {
             const data = await efilingAPI.getSent();
-            if (data.success) setSent(data.transfers);
+            if (data.success) setTrackedFiles(data.transfers);
         } catch (error) {
-            console.error('Failed to fetch sent:', error);
+            console.error('Failed to fetch tracked files:', error);
         } finally {
             setLoading(false);
         }
@@ -201,7 +208,7 @@ const EFiling = () => {
         });
     };
 
-    const filteredEmployees = employees.filter(emp => 
+    const filteredEmployees = employees.filter(emp =>
         getEmployeeName(emp).toLowerCase().includes(recipientSearch.toLowerCase())
     );
 
@@ -214,7 +221,7 @@ const EFiling = () => {
         <div className="send-section">
             <div className="send-form">
                 <h3>Send Document</h3>
-                
+
                 <div className="form-group">
                     <label>Select Recipient</label>
                     <div className="recipient-selector">
@@ -268,7 +275,7 @@ const EFiling = () => {
 
                 <div className="form-group">
                     <label>Select File</label>
-                    <div 
+                    <div
                         className={`file-upload-area ${selectedFile ? 'has-file' : ''}`}
                         onClick={() => fileInputRef.current?.click()}
                     >
@@ -344,39 +351,224 @@ const EFiling = () => {
         </div>
     );
 
-    const renderSentTab = () => (
-        <div className="sent-section">
-            {loading ? <div className="loading">Loading...</div> : sent.length === 0 ? (
-                <div className="empty-state">
-                    <Send size={48} />
-                    <h3>No files sent</h3>
-                    <p>Files you send will appear here</p>
+
+
+    const handleForward = async () => {
+        if (!forwardFileId || !selectedRecipient) return;
+
+        setLoading(true);
+        try {
+            await efilingAPI.forwardFile({
+                originalTransferId: forwardFileId,
+                recipientId: selectedRecipient,
+                note
+            });
+            alert('File forwarded successfully!');
+            setIsForwarding(false);
+            setForwardFileId(null);
+            setSelectedRecipient('');
+            setNote('');
+            if (activeTab === 'inbox') fetchInbox();
+            if (activeTab === 'track') fetchTrackedFiles();
+            // If viewing a thread, refresh it
+            if (selectedThread) {
+                const threadData = await efilingAPI.getFileThread(selectedThread[0]._id);
+                if (threadData.success) setSelectedThread(threadData.thread);
+            }
+        } catch (error) {
+            alert('Failed to forward file');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const viewThread = async (fileId, e) => {
+        if (e) e.stopPropagation();
+        setLoading(true);
+        try {
+            const data = await efilingAPI.getFileThread(fileId);
+            if (data.success) {
+                setSelectedThread(data.thread);
+            } else {
+                alert('Failed to load file journey');
+            }
+        } catch (error) {
+            console.error('Failed to fetch thread:', error);
+            alert('Error loading file journey');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const renderFileJourney = () => {
+        if (!selectedThread) return null;
+
+        return (
+            <div className="journey-view">
+                <div className="journey-header">
+                    <button className="back-btn" onClick={() => setSelectedThread(null)} type="button">
+                        <ChevronDown className="rotate-90" /> Back to List
+                    </button>
+                    <h3>File Journey: {selectedThread[0]?.originalName}</h3>
                 </div>
-            ) : (
-                <div className="file-list">
-                    {sent.map(transfer => (
-                        <div key={transfer._id} className="file-item">
-                            <div className="file-icon-wrapper">{getFileIcon(transfer.fileType)}</div>
-                            <div className="file-details">
-                                <div className="file-header">
-                                    <span className="file-name">{transfer.originalName}</span>
-                                    <span className="file-size">{formatFileSize(transfer.fileSize)}</span>
+
+                <div className="journey-timeline">
+                    {selectedThread.map((step, index) => {
+                        const isLast = index === selectedThread.length - 1;
+                        const isMe = step.recipient?._id === user?.id;
+
+                        return (
+                            <div key={step._id} className="timeline-node">
+                                <div className="node-connector">
+                                    <div className={`dot ${step.isRead ? 'read' : 'pending'}`}>
+                                        <GitCommit size={16} />
+                                    </div>
+                                    {!isLast && <div className="line"></div>}
                                 </div>
-                                <div className="file-meta">
-                                    <span className="recipient"><User size={14} /> To: {getEmployeeName(transfer.recipient)}</span>
-                                    <span className="date"><Clock size={14} /> {formatDateTime(transfer.createdAt)}</span>
+                                <div className="node-content">
+                                    <div className="node-card">
+                                        <div className="node-header">
+                                            <span className="action-type">
+                                                {index === 0 ? 'Uploaded by' : 'Forwarded by'}
+                                            </span>
+                                            <span className="timestamp">{formatDateTime(step.createdAt)}</span>
+                                        </div>
+                                        <div className="user-info">
+                                            <div className="avatar">{step.sender?.profile?.firstName?.[0] || 'U'}</div>
+                                            <div className="details">
+                                                <span className="name">{getEmployeeName(step.sender)}</span>
+                                                <ArrowRight size={14} className="arrow" />
+                                                <span className="name">{getEmployeeName(step.recipient)}</span>
+                                            </div>
+                                        </div>
+                                        {step.note && (
+                                            <div className="node-note">
+                                                <Paperclip size={12} /> {step.note}
+                                            </div>
+                                        )}
+                                        <div className="node-status">
+                                            <span className={`status-badge ${step.isRead ? 'success' : 'pending'}`}>
+                                                {step.isRead ? 'Read' : 'Delivered'}
+                                            </span>
+                                            {isMe && (
+                                                <div className="node-actions">
+                                                    <button onClick={() => handleDownload(step)} title="Download" type="button">
+                                                        <Download size={14} />
+                                                    </button>
+                                                    <button onClick={() => {
+                                                        setForwardFileId(step._id);
+                                                        setIsForwarding(true);
+                                                    }} title="Forward" type="button">
+                                                        <Send size={14} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                                {transfer.note && <div className="file-note"><Paperclip size={14} /> {transfer.note}</div>}
                             </div>
-                            <div className="file-status">
-                                {transfer.isRead ? (
-                                    <span className="status read"><CheckCheck size={16} /> Read</span>
-                                ) : (
-                                    <span className="status delivered"><Check size={16} /> Delivered</span>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    const renderTrackTab = () => (
+        <div className="track-section">
+            {selectedThread ? renderFileJourney() : (
+                <>
+                    {loading ? <div className="loading">Loading...</div> : trackedFiles.length === 0 ? (
+                        <div className="empty-state">
+                            <Activity size={48} />
+                            <h3>No files tracked</h3>
+                            <p>Files you participate in will appear here</p>
+                        </div>
+                    ) : (
+                        <div className="file-list">
+                            {trackedFiles.map(transfer => (
+                                <div key={transfer._id} className="file-item" onClick={(e) => viewThread(transfer._id, e)}>
+                                    <div className="file-icon-wrapper">{getFileIcon(transfer.fileType)}</div>
+                                    <div className="file-details">
+                                        <div className="file-header">
+                                            <span className="file-name">{transfer.originalName}</span>
+                                            <span className="file-size">{formatFileSize(transfer.fileSize)}</span>
+                                        </div>
+                                        <div className="file-meta">
+                                            <span><User size={14} /> From: {getEmployeeName(transfer.sender)}</span>
+                                            <span>To: {getEmployeeName(transfer.recipient)}</span>
+                                            <span className="date"><Clock size={14} /> {formatDateTime(transfer.createdAt)}</span>
+                                        </div>
+                                    </div>
+                                    <div className="file-actions">
+                                        <button
+                                            className="view-btn"
+                                            onClick={(e) => viewThread(transfer._id, e)}
+                                            type="button"
+                                        >
+                                            View Journey <ArrowRight size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </>
+            )}
+
+            {isForwarding && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h3>Forward File</h3>
+                        <div className="form-group">
+                            <label>Select Recipient</label>
+                            <div className="recipient-selector">
+                                <div className="recipient-input" onClick={() => setShowRecipientDropdown(!showRecipientDropdown)}>
+                                    <User size={18} />
+                                    <span className={selectedRecipient ? 'selected' : 'placeholder'}>
+                                        {selectedRecipient ? getSelectedRecipientName() : 'Choose recipient...'}
+                                    </span>
+                                    <ChevronDown size={18} />
+                                </div>
+                                {showRecipientDropdown && (
+                                    <div className="recipient-dropdown">
+                                        <div className="dropdown-search">
+                                            <Search size={16} />
+                                            <input
+                                                type="text"
+                                                placeholder="Search..."
+                                                value={recipientSearch}
+                                                onChange={(e) => setRecipientSearch(e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="dropdown-list">
+                                            {filteredEmployees.map(emp => (
+                                                <div
+                                                    key={emp._id}
+                                                    className={`dropdown-item ${selectedRecipient === emp._id ? 'selected' : ''}`}
+                                                    onClick={() => {
+                                                        setSelectedRecipient(emp._id);
+                                                        setShowRecipientDropdown(false);
+                                                    }}
+                                                >
+                                                    <div className="emp-avatar">{getEmployeeName(emp).charAt(0)}</div>
+                                                    <span className="emp-name">{getEmployeeName(emp)}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </div>
-                    ))}
+                        <div className="form-group">
+                            <label>Note</label>
+                            <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="Add a note..." />
+                        </div>
+                        <div className="modal-actions">
+                            <button className="cancel-btn" onClick={() => { setIsForwarding(false); setForwardFileId(null); }}>Cancel</button>
+                            <button className="confirm-btn" onClick={handleForward} disabled={loading || !selectedRecipient}>Forward</button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
@@ -391,7 +583,7 @@ const EFiling = () => {
                     <option value="received">Received Only</option>
                 </select>
             </div>
-            
+
             {loading ? <div className="loading">Loading...</div> : history.length === 0 ? (
                 <div className="empty-state">
                     <History size={48} />
@@ -445,9 +637,10 @@ const EFiling = () => {
                     <Inbox size={18} /> Inbox
                     {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
                 </button>
-                <button className={`tab-btn ${activeTab === 'sent' ? 'active' : ''}`} onClick={() => setActiveTab('sent')}>
-                    <Check size={18} /> Sent
+                <button className={`tab-btn ${activeTab === 'track' ? 'active' : ''}`} onClick={() => setActiveTab('track')}>
+                    <Activity size={18} /> Track File
                 </button>
+
                 <button className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`} onClick={() => setActiveTab('history')}>
                     <History size={18} /> History
                 </button>
@@ -456,7 +649,8 @@ const EFiling = () => {
             <div className="efiling-content">
                 {activeTab === 'send' && renderSendTab()}
                 {activeTab === 'inbox' && renderInboxTab()}
-                {activeTab === 'sent' && renderSentTab()}
+                {activeTab === 'track' && renderTrackTab()}
+
                 {activeTab === 'history' && renderHistoryTab()}
             </div>
         </div>

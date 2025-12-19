@@ -41,7 +41,7 @@ const fileFilter = (req, file, cb) => {
         'application/zip',
         'application/x-rar-compressed'
     ];
-    
+
     if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
@@ -91,8 +91,14 @@ router.post('/send', protect, upload.single('file'), async (req, res) => {
             fileType: req.file.mimetype,
             fileSize: req.file.size,
             filePath: req.file.path,
-            note: note || ''
+            note: note || '',
+            // Start a new thread
+            isForwarded: false
         });
+
+        // For original upload, threadId is its own ID
+        fileTransfer.threadId = fileTransfer._id;
+        await fileTransfer.save();
 
         await fileTransfer.populate([
             { path: 'sender', select: 'username profile.firstName profile.lastName' },
@@ -113,11 +119,61 @@ router.post('/send', protect, upload.single('file'), async (req, res) => {
     }
 });
 
+// Forward a file
+router.post('/forward', protect, async (req, res) => {
+    try {
+        const { originalTransferId, recipientId, note } = req.body;
+
+        if (!originalTransferId || !recipientId) {
+            return res.status(400).json({ success: false, message: 'Original file and recipient are required' });
+        }
+
+        const originalTransfer = await FileTransfer.findById(originalTransferId);
+        if (!originalTransfer) {
+            return res.status(404).json({ success: false, message: 'Original file not found' });
+        }
+
+        // Verify user has access to this file (is sender or recipient)
+        if (originalTransfer.sender.toString() !== req.user._id.toString() &&
+            originalTransfer.recipient.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, message: 'Unauthorized to forward this file' });
+        }
+
+        // Create new transfer record pointing to same physical file
+        const newTransfer = await FileTransfer.create({
+            sender: req.user._id,
+            recipient: recipientId,
+            fileName: originalTransfer.fileName,
+            originalName: originalTransfer.originalName,
+            fileType: originalTransfer.fileType,
+            fileSize: originalTransfer.fileSize,
+            filePath: originalTransfer.filePath,
+            note: note || '',
+            isForwarded: true,
+            parentTransferId: originalTransfer._id,
+            threadId: originalTransfer.threadId || originalTransfer._id
+        });
+
+        await newTransfer.populate([
+            { path: 'sender', select: 'username profile.firstName profile.lastName' },
+            { path: 'recipient', select: 'username profile.firstName profile.lastName' }
+        ]);
+
+        res.status(201).json({
+            success: true,
+            message: 'File forwarded successfully',
+            transfer: newTransfer
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+});
+
 // Get inbox (received files)
 router.get('/inbox', protect, async (req, res) => {
     try {
         const { page = 1, limit = 20 } = req.query;
-        
+
         const transfers = await FileTransfer.find({ recipient: req.user._id })
             .populate('sender', 'username profile.firstName profile.lastName employment.designation')
             .sort({ createdAt: -1 })
@@ -146,7 +202,7 @@ router.get('/inbox', protect, async (req, res) => {
 router.get('/sent', protect, async (req, res) => {
     try {
         const { page = 1, limit = 20 } = req.query;
-        
+
         const transfers = await FileTransfer.find({ sender: req.user._id })
             .populate('recipient', 'username profile.firstName profile.lastName employment.designation')
             .sort({ createdAt: -1 })
@@ -169,11 +225,47 @@ router.get('/sent', protect, async (req, res) => {
     }
 });
 
+// Get file tracking thread
+router.get('/track/:id', protect, async (req, res) => {
+    try {
+        const transfer = await FileTransfer.findById(req.params.id);
+        if (!transfer) {
+            return res.status(404).json({ success: false, message: 'File not found' });
+        }
+
+        // Get all transfers in this thread
+        // Sort by creation date to show journey
+        const thread = await FileTransfer.find({
+            $or: [
+                { threadId: transfer.threadId || transfer._id },
+                { _id: transfer.threadId || transfer._id }
+            ]
+        })
+            .populate('sender', 'username profile.firstName profile.lastName employment.designation')
+            .populate('recipient', 'username profile.firstName profile.lastName employment.designation')
+            .sort({ createdAt: 1 });
+
+        // Verify user has access to at least one file in thread
+        const hasAccess = thread.some(t =>
+            t.sender._id.toString() === req.user._id.toString() ||
+            t.recipient._id.toString() === req.user._id.toString()
+        );
+
+        if (!hasAccess && req.user.role !== 'ADMIN') {
+            return res.status(403).json({ success: false, message: 'Unauthorized to view tracking' });
+        }
+
+        res.json({ success: true, thread });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+});
+
 // Get history (all sent and received)
 router.get('/history', protect, async (req, res) => {
     try {
         const { page = 1, limit = 30, filter, search } = req.query;
-        
+
         let query = {
             $or: [
                 { sender: req.user._id },
@@ -250,6 +342,11 @@ router.get('/download/:id', protect, async (req, res) => {
         if (!transfer) {
             return res.status(404).json({ success: false, message: 'File not found' });
         }
+
+        // Check for thread access if not direct sender/recipient
+        // This handles cases where user might be part of the thread history but not this specific transfer
+        // For now, basic check is sufficient as users only see transfers they are part of
+
 
         // Mark as read if recipient is downloading
         if (transfer.recipient.toString() === req.user._id.toString() && !transfer.isRead) {
