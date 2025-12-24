@@ -1,17 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
 import { Save, Download } from 'lucide-react';
-import { usersAPI } from '../services/api';
+import { usersAPI, authAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { ROLES } from '../constants/roles';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import './Salary.css';
 
 const Salary = () => {
+    const { user } = useAuth();
     const [employees, setEmployees] = useState([]);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [searchName, setSearchName] = useState('');
     const contentRef = useRef(null);
+    
+    const isAccountant = user?.role === ROLES.ACCOUNTANT;
 
     // Get current month and year
     const currentDate = new Date();
@@ -23,28 +28,54 @@ const Salary = () => {
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
-                const response = await usersAPI.getAll();
-                if (response.success && response.users) {
-                    const filteredUsers = response.users.filter(
-                        user => user.role !== 'FACULTY_IN_CHARGE' && user.role !== 'OFFICER_IN_CHARGE'
-                    );
-                    
-                    const employeesWithSalary = filteredUsers.map(user => ({
-                        id: user._id,
-                        name: `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim() || user.username,
-                        designation: user.employment?.designation || 'N/A',
-                        employeeId: user.employeeId || 'N/A',
-                        pan: user.documents?.pan?.number || (typeof user.documents?.pan === 'string' ? user.documents.pan : 'N/A'),
-                        bankAccount: user.bankDetails?.accountNumber || 'N/A',
-                        fixedPay: user.employment?.baseSalary || 24000,
-                        variablePay: user.employment?.maxVariableRemuneration || 6000,
-                        others: 0,
-                        tds: 0,
-                        nps: 0,
-                        otherDeductions: 0
-                    }));
+                if (isAccountant) {
+                    // Accountant can see all employees
+                    const response = await usersAPI.getAll();
+                    if (response.success && response.users) {
+                        const filteredUsers = response.users.filter(
+                            user => user.role !== 'FACULTY_IN_CHARGE' && user.role !== 'OFFICER_IN_CHARGE'
+                        );
+                        
+                        const employeesWithSalary = filteredUsers.map(user => ({
+                            id: user._id,
+                            name: `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim() || user.username,
+                            designation: user.employment?.designation || 'N/A',
+                            employeeId: user.employeeId || 'N/A',
+                            pan: user.documents?.pan?.number || (typeof user.documents?.pan === 'string' ? user.documents.pan : 'N/A'),
+                            bankAccount: user.bankDetails?.accountNumber || 'N/A',
+                            fixedPay: user.employment?.baseSalary || 24000,
+                            variablePay: user.employment?.maxVariableRemuneration || 6000,
+                            others: 0,
+                            tds: 0,
+                            nps: 0,
+                            otherDeductions: 0
+                        }));
 
-                    setEmployees(employeesWithSalary);
+                        setEmployees(employeesWithSalary);
+                    }
+                } else {
+                    // Regular employee can only see their own salary
+                    const response = await authAPI.getProfile();
+                    if (response.success && response.user) {
+                        const currentUser = response.user;
+                        const employeeData = {
+                            id: currentUser._id,
+                            name: `${currentUser.profile?.firstName || ''} ${currentUser.profile?.lastName || ''}`.trim() || currentUser.username,
+                            designation: currentUser.employment?.designation || 'N/A',
+                            employeeId: currentUser.employeeId || 'N/A',
+                            pan: currentUser.documents?.pan?.number || (typeof currentUser.documents?.pan === 'string' ? currentUser.documents.pan : 'N/A'),
+                            bankAccount: currentUser.bankDetails?.accountNumber || 'N/A',
+                            fixedPay: currentUser.employment?.baseSalary || 24000,
+                            variablePay: currentUser.employment?.maxVariableRemuneration || 6000,
+                            others: 0,
+                            tds: 0,
+                            nps: 0,
+                            otherDeductions: 0
+                        };
+                        setEmployees([employeeData]);
+                        setSelectedEmployee(employeeData);
+                        setSearchName(employeeData.name);
+                    }
                 }
             } catch (error) {
                 console.error('Failed to fetch employees:', error);
@@ -54,7 +85,7 @@ const Salary = () => {
         };
 
         fetchEmployees();
-    }, []);
+    }, [isAccountant]);
 
     useEffect(() => {
         if (selectedEmployee) {
@@ -191,53 +222,69 @@ const Salary = () => {
 
     return (
         <div className="salary-page-container">
-            <div className="salary-actions">
-                <div className="employee-selector">
-                    <label>Enter Employee Name:</label>
-                    <div className="search-input-wrapper">
-                        <input
-                            type="text"
-                            list="employees"
-                            value={searchName}
-                            onChange={handleNameChange}
-                            onKeyPress={handleKeyPress}
-                            placeholder="Type or select employee name..."
-                            className="employee-search-input"
-                        />
-                        <button 
-                            className="check-btn"
-                            onClick={handleCheckEmployee}
-                            title="Check Employee"
+            {isAccountant && (
+                <div className="salary-actions">
+                    <div className="employee-selector">
+                        <label>Enter Employee Name:</label>
+                        <div className="search-input-wrapper">
+                            <input
+                                type="text"
+                                list="employees"
+                                value={searchName}
+                                onChange={handleNameChange}
+                                onKeyPress={handleKeyPress}
+                                placeholder="Type or select employee name..."
+                                className="employee-search-input"
+                            />
+                            <button 
+                                className="check-btn"
+                                onClick={handleCheckEmployee}
+                                title="Check Employee"
+                            >
+                                ✓
+                            </button>
+                        </div>
+                        <datalist id="employees">
+                            {employees.map(emp => (
+                                <option key={emp.id} value={emp.name} />
+                            ))}
+                        </datalist>
+                    </div>
+                    <div className="action-buttons">
+                        <button
+                            className="action-btn save-btn"
+                            onClick={handleSave}
+                            disabled={saving}
                         >
-                            ✓
+                            <Save size={18} />
+                            {saving ? 'Saving...' : 'Save'}
+                        </button>
+                        <button
+                            className="action-btn download-btn"
+                            onClick={handleDownloadPDF}
+                        >
+                            <Download size={18} />
+                            Download PDF
                         </button>
                     </div>
-                    <datalist id="employees">
-                        {employees.map(emp => (
-                            <option key={emp.id} value={emp.name} />
-                        ))}
-                    </datalist>
                 </div>
-                <div className="action-buttons">
-                    <button
-                        className="action-btn save-btn"
-                        onClick={handleSave}
-                        disabled={saving}
-                    >
-                        <Save size={18} />
-                        {saving ? 'Saving...' : 'Save'}
-                    </button>
-                    <button
-                        className="action-btn download-btn"
-                        onClick={handleDownloadPDF}
-                    >
-                        <Download size={18} />
-                        Download PDF
-                    </button>
-                </div>
-            </div>
+            )}
 
-            {!selectedEmployee && <div className="no-selection">Please enter an employee name to view the salary slip.</div>}
+            {!isAccountant && selectedEmployee && (
+                <div className="salary-actions">
+                    <div className="action-buttons">
+                        <button
+                            className="action-btn download-btn"
+                            onClick={handleDownloadPDF}
+                        >
+                            <Download size={18} />
+                            Download PDF
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {isAccountant && !selectedEmployee && <div className="no-selection">Please enter an employee name to view the salary slip.</div>}
 
             {selectedEmployee && (
                 <div className="salary-slip-container" ref={contentRef}>
@@ -298,73 +345,97 @@ const Salary = () => {
                             <tr>
                                 <td>Fixed Pay</td>
                                 <td>
-                                    <input
-                                        type="number"
-                                        className="editable-field"
-                                        value={selectedEmployee.fixedPay}
-                                        onChange={(e) => handleFieldChange('fixedPay', e.target.value)}
-                                        min="0"
-                                        step="0.01"
-                                    />
+                                    {isAccountant ? (
+                                        <input
+                                            type="number"
+                                            className="editable-field"
+                                            value={selectedEmployee.fixedPay}
+                                            onChange={(e) => handleFieldChange('fixedPay', e.target.value)}
+                                            min="0"
+                                            step="0.01"
+                                        />
+                                    ) : (
+                                        <span className="readonly-field">{selectedEmployee.fixedPay.toFixed(2)}</span>
+                                    )}
                                 </td>
                                 <td>TDS</td>
                                 <td>
-                                    <input
-                                        type="number"
-                                        className="editable-field"
-                                        value={selectedEmployee.tds}
-                                        onChange={(e) => handleFieldChange('tds', e.target.value)}
-                                        min="0"
-                                        step="0.01"
-                                    />
+                                    {isAccountant ? (
+                                        <input
+                                            type="number"
+                                            className="editable-field"
+                                            value={selectedEmployee.tds}
+                                            onChange={(e) => handleFieldChange('tds', e.target.value)}
+                                            min="0"
+                                            step="0.01"
+                                        />
+                                    ) : (
+                                        <span className="readonly-field">{selectedEmployee.tds.toFixed(2)}</span>
+                                    )}
                                 </td>
                             </tr>
                             <tr>
                                 <td>Variable Pay</td>
                                 <td>
-                                    <input
-                                        type="number"
-                                        className="editable-field"
-                                        value={selectedEmployee.variablePay}
-                                        onChange={(e) => handleFieldChange('variablePay', e.target.value)}
-                                        min="0"
-                                        step="0.01"
-                                    />
+                                    {isAccountant ? (
+                                        <input
+                                            type="number"
+                                            className="editable-field"
+                                            value={selectedEmployee.variablePay}
+                                            onChange={(e) => handleFieldChange('variablePay', e.target.value)}
+                                            min="0"
+                                            step="0.01"
+                                        />
+                                    ) : (
+                                        <span className="readonly-field">{selectedEmployee.variablePay.toFixed(2)}</span>
+                                    )}
                                 </td>
                                 <td>NPS</td>
                                 <td>
-                                    <input
-                                        type="number"
-                                        className="editable-field"
-                                        value={selectedEmployee.nps}
-                                        onChange={(e) => handleFieldChange('nps', e.target.value)}
-                                        min="0"
-                                        step="0.01"
-                                    />
+                                    {isAccountant ? (
+                                        <input
+                                            type="number"
+                                            className="editable-field"
+                                            value={selectedEmployee.nps}
+                                            onChange={(e) => handleFieldChange('nps', e.target.value)}
+                                            min="0"
+                                            step="0.01"
+                                        />
+                                    ) : (
+                                        <span className="readonly-field">{selectedEmployee.nps.toFixed(2)}</span>
+                                    )}
                                 </td>
                             </tr>
                             <tr>
                                 <td>Others</td>
                                 <td>
-                                    <input
-                                        type="number"
-                                        className="editable-field"
-                                        value={selectedEmployee.others}
-                                        onChange={(e) => handleFieldChange('others', e.target.value)}
-                                        min="0"
-                                        step="0.01"
-                                    />
+                                    {isAccountant ? (
+                                        <input
+                                            type="number"
+                                            className="editable-field"
+                                            value={selectedEmployee.others}
+                                            onChange={(e) => handleFieldChange('others', e.target.value)}
+                                            min="0"
+                                            step="0.01"
+                                        />
+                                    ) : (
+                                        <span className="readonly-field">{selectedEmployee.others.toFixed(2)}</span>
+                                    )}
                                 </td>
                                 <td>Other Ded.</td>
                                 <td>
-                                    <input
-                                        type="number"
-                                        className="editable-field"
-                                        value={selectedEmployee.otherDeductions}
-                                        onChange={(e) => handleFieldChange('otherDeductions', e.target.value)}
-                                        min="0"
-                                        step="0.01"
-                                    />
+                                    {isAccountant ? (
+                                        <input
+                                            type="number"
+                                            className="editable-field"
+                                            value={selectedEmployee.otherDeductions}
+                                            onChange={(e) => handleFieldChange('otherDeductions', e.target.value)}
+                                            min="0"
+                                            step="0.01"
+                                        />
+                                    ) : (
+                                        <span className="readonly-field">{selectedEmployee.otherDeductions.toFixed(2)}</span>
+                                    )}
                                 </td>
                             </tr>
                             <tr className="total-row">

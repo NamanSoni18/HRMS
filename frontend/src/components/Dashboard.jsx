@@ -258,16 +258,14 @@ const Dashboard = ({ onLogout }) => {
               <LayoutDashboard size={20} />
               {isSidebarOpen && <span>Dashboard</span>}
             </button>
-            {isManagerLevel && (
-              <button
-                className={`nav-item ${activeView === "employees" ? "active" : ""
-                  }`}
-                onClick={() => setActiveView("employees")}
-              >
-                <Users size={20} />
-                {isSidebarOpen && <span>Employees</span>}
-              </button>
-            )}
+            <button
+              className={`nav-item ${activeView === "employees" ? "active" : ""
+                }`}
+              onClick={() => setActiveView("employees")}
+            >
+              <Users size={20} />
+              {isSidebarOpen && <span>Employees</span>}
+            </button>
             {isManagerLevel && (
               <button
                 className={`nav-item ${activeView === "attendance" ? "active" : ""
@@ -287,7 +285,7 @@ const Dashboard = ({ onLogout }) => {
                 {isSidebarOpen && <span>Leave</span>}
               </button>
             )}
-            {isManagerLevel && (
+            {(user?.role === ROLES.ACCOUNTANT || user?.role === ROLES.EMPLOYEE) && (
               <button
                 className={`nav-item ${activeView === "salary" ? "active" : ""
                   }`}

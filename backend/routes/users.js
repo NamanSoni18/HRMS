@@ -4,7 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const User = require('../models/User');
-const { protect, isAdminOrCEO } = require('../middleware/auth');
+const { protect, isAdminOrCEO, authorize } = require('../middleware/auth');
 
 // Ensure uploads directory exists for profile photos
 const uploadDir = path.join(__dirname, '../uploads/profile-photos');
@@ -40,7 +40,7 @@ const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
-router.get('/', protect, isAdminOrCEO, async (req, res) => {
+router.get('/', protect, async (req, res) => {
     try {
         const { role, isActive, search } = req.query;
         

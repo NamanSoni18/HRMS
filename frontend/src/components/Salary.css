@@ -329,6 +329,15 @@
     box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
 }
 
+.readonly-field {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    text-align: right;
+    color: #333;
+    font-weight: 500;
+    display: block;
+}
+
 .total-row {
     background: #f8f9fa;
     font-weight: 700;

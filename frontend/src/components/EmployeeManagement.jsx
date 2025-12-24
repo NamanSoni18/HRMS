@@ -128,6 +128,9 @@ const EmployeeManagement = () => {
     }
 
     const isAccountant = user?.role === ROLES.ACCOUNTANT;
+    const isAdminOrCEO = user?.role === ROLES.ADMIN || user?.role === ROLES.CEO;
+    const canAddEmployee = isAdminOrCEO;
+    const canDeleteEmployee = isAdminOrCEO;
 
     return (
         <div className="employee-container">
@@ -136,7 +139,7 @@ const EmployeeManagement = () => {
                     <h2>Employee Directory</h2>
                     <p>Manage your workforce details and status</p>
                 </div>
-                {isAccountant && (
+                {canAddEmployee && (
                     <button className="add-btn" onClick={() => setShowAddModal(true)}>
                         <Plus size={20} /> Add Employee
                     </button>
@@ -217,7 +220,9 @@ const EmployeeManagement = () => {
                     <div key={emp._id} className="emp-card glass-panel">
                         <div className="card-top">
                             <div className={`status-dot ${getStatusColor(emp.status || 'Active')}`} title={emp.status || 'Active'}></div>
-                            <button className="more-btn" onClick={() => handleDeleteEmployee(emp._id)}><MoreVertical size={18} /></button>
+                            {canDeleteEmployee && (
+                                <button className="more-btn" onClick={() => handleDeleteEmployee(emp._id)}><MoreVertical size={18} /></button>
+                            )}
                         </div>
 
                         <div className="emp-profile">
