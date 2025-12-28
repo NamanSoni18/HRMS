@@ -177,6 +177,20 @@
     gap: 20px;
 }
 
+.content-area {
+    overflow-x: hidden
+}
+
+.logo-left-salary {
+    width: 100px;
+    height: 100px;
+}
+
+.logo-right-salary {
+    width: 100px;
+    height: 100px;
+}
+
 .logo-section {
     width: 80px;
     flex-shrink: 0;

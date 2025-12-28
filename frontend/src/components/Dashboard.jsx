@@ -14,7 +14,8 @@ import {
   UserCircle,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { ROLES, ROLE_HIERARCHY } from "../constants/roles";
+import { ROLE_HIERARCHY } from "../constants/roles";
+import { getAccessibleNavItems } from "../constants/permissions";
 import { dashboardAPI, getPhotoUrl } from "../services/api";
 import VariableRemuneration from "./VariableRemuneration";
 import Remuneration from "./Remuneration";
@@ -95,10 +96,22 @@ const Dashboard = ({ onLogout }) => {
   };
 
   const userLevel = ROLE_HIERARCHY[user?.role] ?? 99;
-  const isCEO = user?.role === ROLES.CEO;
-  const isAdminOrCEO = userLevel <= 1;
-  const isManagerLevel = userLevel <= 2;
-  const role = localStorage.getItem("role");
+  
+  // Get navigation items accessible to current user
+  const accessibleNavItems = getAccessibleNavItems(user);
+  
+  // Icon mapping for navigation items
+  const iconMap = {
+    LayoutDashboard,
+    Users,
+    CalendarCheck,
+    Clock,
+    DollarSign,
+    Star,
+    FileText,
+    FolderOpen,
+    SettingsIcon
+  };
 
   const stats = [
     {
@@ -251,111 +264,19 @@ const Dashboard = ({ onLogout }) => {
           </div>
 
           <nav className="sidebar-nav">
-            <button
-              className={`nav-item ${activeView === "dashboard" ? "active" : ""
-                }`}
-              onClick={() => setActiveView("dashboard")}
-            >
-              <LayoutDashboard size={20} />
-              {isSidebarOpen && <span>Dashboard</span>}
-            </button>
-            <button
-              className={`nav-item ${activeView === "employees" ? "active" : ""
-                }`}
-              onClick={() => setActiveView("employees")}
-            >
-              <Users size={20} />
-              {isSidebarOpen && <span>Employees</span>}
-            </button>
-            {isManagerLevel && (
-              <button
-                className={`nav-item ${activeView === "attendance" ? "active" : ""
-                  }`}
-                onClick={() => setActiveView("attendance")}
-              >
-                <CalendarCheck size={20} />
-                {isSidebarOpen && <span>Attendance</span>}
-              </button>
-            )}
-            {isManagerLevel && (
-              <button
-                className={`nav-item ${activeView === "leave" ? "active" : ""}`}
-                onClick={() => setActiveView("leave")}
-              >
-                <Clock size={20} />
-                {isSidebarOpen && <span>Leave</span>}
-              </button>
-            )}
-            {(user?.role === ROLES.ACCOUNTANT || user?.role === ROLES.EMPLOYEE) && (
-              <button
-                className={`nav-item ${activeView === "salary" ? "active" : ""
-                  }`}
-                onClick={() => setActiveView("salary")}
-              >
-                <DollarSign size={20} />
-                {isSidebarOpen && <span>Salary</span>}
-              </button>
-            )}
-            {isManagerLevel && role !== "FACULTY_IN_CHARGE" && (
-              <button
-                className={`nav-item ${activeView === "peer-rating" ? "active" : ""
-                  }`}
-                onClick={() => setActiveView("peer-rating")}
-              >
-                <Star size={20} />
-                {isSidebarOpen && <span>Peer Rating</span>}
-              </button>
-            )}
-            {isManagerLevel && role === "FACULTY_IN_CHARGE" && (
-              <button
-                className={`nav-item ${activeView === "variable-remuneration" ? "active" : ""
-                  }`}
-                onClick={() => setActiveView("variable-remuneration")}
-              >
-                <Star size={20} />
-                {isSidebarOpen && <span>Variable Remuneration</span>}
-              </button>
-            )}
-            {isManagerLevel && (
-              <button
-                className={`nav-item ${activeView === "remuneration" ? "active" : ""
-                  }`}
-                onClick={() => setActiveView("remuneration")}
-              >
-                <FileText size={20} />
-                {isSidebarOpen && <span>Remuneration</span>}
-              </button>
-            )}
-            {isManagerLevel && (
-              <button
-                className={`nav-item ${activeView === "calendar" ? "active" : ""
-                  }`}
-                onClick={() => setActiveView("calendar")}
-              >
-                <FileText size={20} />
-                {isSidebarOpen && <span>Calendar</span>}
-              </button>
-            )}
-            {isManagerLevel && (
-              <button
-                className={`nav-item ${activeView === "efiling" ? "active" : ""
-                  }`}
-                onClick={() => setActiveView("efiling")}
-              >
-                <FolderOpen size={20} />
-                {isSidebarOpen && <span>E-Filing</span>}
-              </button>
-            )}
-            {isManagerLevel && (
-              <button
-                className={`nav-item ${activeView === "settings" ? "active" : ""
-                  }`}
-                onClick={() => setActiveView("settings")}
-              >
-                <SettingsIcon size={20} />
-                {isSidebarOpen && <span>Settings</span>}
-              </button>
-            )}
+            {accessibleNavItems.map((item) => {
+              const IconComponent = iconMap[item.icon];
+              return (
+                <button
+                  key={item.id}
+                  className={`nav-item ${activeView === item.view ? "active" : ""}`}
+                  onClick={() => setActiveView(item.view)}
+                >
+                  {IconComponent && <IconComponent size={20} />}
+                  {isSidebarOpen && <span>{item.label}</span>}
+                </button>
+              );
+            })}
           </nav>
         </aside>
 

@@ -290,7 +290,7 @@ const Salary = () => {
                 <div className="salary-slip-container" ref={contentRef}>
                     <div className="slip-header">
                         <div className="logo-section">
-                            <div className="logo-placeholder">LOGO</div>
+                            <img src="/National_Institute_of_Technology,_Raipur_Logo.png" alt="NIT Raipur" class="logo-left-salary" />
                         </div>
                         <div className="organization-info">
                             <h3 className="hindi-title">एन.आई.टी. रायपुर फाउंडेशन फॉरइनोवेशन एंड आंत्रप्रन्योरशिप</h3>
@@ -303,7 +303,7 @@ const Salary = () => {
                             </div>
                         </div>
                         <div className="logo-section">
-                            <div className="logo-placeholder">LOGO</div>
+                            <img src="/logo-NITRRFIE.png" alt="NITRRFIE" class="logo-right-salary" />
                         </div>
                     </div>
 
