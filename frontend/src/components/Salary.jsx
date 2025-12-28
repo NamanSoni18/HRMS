@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Save, Download } from 'lucide-react';
 import { usersAPI, authAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { ROLES } from '../constants/roles';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import './Salary.css';
@@ -16,7 +15,7 @@ const Salary = () => {
     const [searchName, setSearchName] = useState('');
     const contentRef = useRef(null);
     
-    const isAccountant = user?.role === ROLES.ACCOUNTANT;
+    const isAccountant = user?.role === 'ACCOUNTANT';
 
     // Get current month and year
     const currentDate = new Date();

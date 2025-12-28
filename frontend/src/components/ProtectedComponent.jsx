@@ -1,4 +1,3 @@
-import { canAccessComponent, canAccessFeature } from '../constants/permissions';
 import { useAuth } from '../context/AuthContext';
 
 /**
@@ -38,15 +37,15 @@ const ProtectedComponent = ({
     fallback = null,
     showFallback = true
 }) => {
-    const { user } = useAuth();
+    const { user, canAccessComponent, canAccessFeature } = useAuth();
     
     // Determine if user has access
     let hasAccess = false;
     
     if (component) {
-        hasAccess = canAccessComponent(component, user);
+        hasAccess = canAccessComponent(component);
     } else if (feature) {
-        hasAccess = canAccessFeature(feature, user);
+        hasAccess = canAccessFeature(feature);
     } else {
         console.warn('ProtectedComponent: Either component or feature prop is required');
         return null;

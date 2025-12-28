@@ -446,3 +446,109 @@ export const holidaysAPI = {
         return response.json();
     }
 };
+
+// ============= ADMIN API =============
+export const adminAPI = {
+    // Role Management
+    getRoles: async () => {
+        const response = await fetch(`${API_URL}/admin/roles`, {
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    },
+
+    getRole: async (roleId) => {
+        const response = await fetch(`${API_URL}/admin/roles/${roleId}`, {
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    },
+
+    createRole: async (roleData) => {
+        const response = await fetch(`${API_URL}/admin/roles`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify(roleData)
+        });
+        return response.json();
+    },
+
+    updateRole: async (roleId, roleData) => {
+        const response = await fetch(`${API_URL}/admin/roles/${roleId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify(roleData)
+        });
+        return response.json();
+    },
+
+    deleteRole: async (roleId) => {
+        const response = await fetch(`${API_URL}/admin/roles/${roleId}`, {
+            method: 'DELETE',
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    },
+
+    // Component & Feature Definitions
+    getComponents: async () => {
+        const response = await fetch(`${API_URL}/admin/components`, {
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    },
+
+    // Initialization
+    initializeRoles: async () => {
+        const response = await fetch(`${API_URL}/admin/initialize`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            }
+        });
+        return response.json();
+    },
+
+    resetRoles: async () => {
+        const response = await fetch(`${API_URL}/admin/reset`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            }
+        });
+        return response.json();
+    },
+
+    // Statistics
+    getStats: async () => {
+        const response = await fetch(`${API_URL}/admin/stats`, {
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    },
+
+    // Get all valid roles (system + custom)
+    getAllValidRoles: async () => {
+        const response = await fetch(`${API_URL}/admin/valid-roles`, {
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    },
+
+    // Get user permissions for a specific role
+    getUserPermissions: async (roleId) => {
+        const response = await fetch(`${API_URL}/admin/user-permissions/${roleId}`, {
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    }
+};
+

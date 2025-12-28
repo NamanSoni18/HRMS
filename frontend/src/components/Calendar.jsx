@@ -8,7 +8,6 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { ROLES } from "../constants/roles";
 import { 
   getHolidaysForYear, 
   prefetchAdjacentYears 
@@ -33,7 +32,7 @@ const Calendar = () => {
     description: "",
   });
 
-  const isCEO = user?.role === ROLES.CEO;
+  const isCEO = user?.role === 'CEO';
 
   // Fetch holidays from Google Calendar API and custom holidays from backend
   useEffect(() => {

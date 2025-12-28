@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Search, Plus, Filter, MoreVertical, Mail, Phone, MapPin, Briefcase, X, Save } from 'lucide-react';
 import { usersAPI, authAPI, getPhotoUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { ROLES } from '../constants/roles';
 import './EmployeeManagement.css';
 
 const EmployeeManagement = () => {
@@ -127,8 +126,8 @@ const EmployeeManagement = () => {
         return <div className="employee-container"><p>Loading employees...</p></div>;
     }
 
-    const isAccountant = user?.role === ROLES.ACCOUNTANT;
-    const isAdminOrCEO = user?.role === ROLES.ADMIN || user?.role === ROLES.CEO;
+    const isAccountant = user?.role === 'ACCOUNTANT';
+    const isAdminOrCEO = user?.role === 'ADMIN' || user?.role === 'CEO';
     const canAddEmployee = isAdminOrCEO;
     const canDeleteEmployee = isAdminOrCEO;
 

@@ -3,75 +3,91 @@
  * PERMISSIONS & ACCESS CONTROL SYSTEM
  * =============================================================================
  * This file centralizes all component and feature access permissions.
+ * Roles are now fetched dynamically from the database via AuthContext.
  * 
  * TO CONFIGURE ACCESS FOR A NEW FEATURE:
  * 1. Add a new entry to COMPONENT_PERMISSIONS or FEATURE_PERMISSIONS
- * 2. Specify allowed roles array or use predefined ROLE_GROUPS
+ * 2. Specify allowed roles array (use role strings like 'ADMIN', 'CEO')
  * 3. Optionally add custom validation function for complex rules
  * 
  * TO ADD A NEW COMPONENT:
  * 1. Add entry to COMPONENT_PERMISSIONS with allowed roles
  * 2. Update NAVIGATION_ITEMS if it should appear in sidebar
+ * 3. Roles are validated against database at runtime
  * =============================================================================
  */
 
-import { ROLES, ROLE_GROUPS } from './roles';
+// Helper constants for common role groups (for convenience)
+// Note: These are just helpers. Actual roles come from database via AuthContext
+export const ROLE_GROUPS_HELPER = {
+    ALL: ['ADMIN', 'CEO', 'INCUBATION_MANAGER', 'ACCOUNTANT', 'OFFICER_IN_CHARGE', 'FACULTY_IN_CHARGE', 'EMPLOYEE'],
+    MANAGERS: ['ADMIN', 'CEO', 'INCUBATION_MANAGER', 'ACCOUNTANT', 'OFFICER_IN_CHARGE', 'FACULTY_IN_CHARGE'],
+    TOP_MANAGEMENT: ['ADMIN', 'CEO'],
+    MIDDLE_MANAGEMENT: ['INCUBATION_MANAGER', 'ACCOUNTANT', 'OFFICER_IN_CHARGE', 'FACULTY_IN_CHARGE'],
+    FINANCE: ['ACCOUNTANT'],
+    FACULTY: ['FACULTY_IN_CHARGE'],
+    STAFF: ['EMPLOYEE']
+};
 
 export const COMPONENT_PERMISSIONS = {
     dashboard: {
-        allowedRoles: ROLE_GROUPS.ALL,
+        allowedRoles: ROLE_GROUPS_HELPER.ALL,
         description: 'Main dashboard view'
     },
     employees: {
-        allowedRoles: ROLE_GROUPS.MANAGERS,
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
         description: 'View and manage employee records'
     },
     attendance: {
-        allowedRoles: ROLE_GROUPS.MANAGERS,
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
         description: 'View and manage attendance records'
     },
     leave: {
-        allowedRoles: ROLE_GROUPS.MANAGERS,
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
         description: 'Approve/reject leave requests'
     },
     salary: {
-        allowedRoles: [ROLES.ACCOUNTANT, ROLES.EMPLOYEE],
+        allowedRoles: ['ACCOUNTANT', 'EMPLOYEE'],
         description: 'View salary information'
     },
     'peer-rating': {
         allowedRoles: [
-            ROLES.ADMIN,
-            ROLES.CEO,
-            ROLES.INCUBATION_MANAGER,
-            ROLES.ACCOUNTANT,
-            ROLES.OFFICER_IN_CHARGE
+            'ADMIN',
+            'CEO',
+            'INCUBATION_MANAGER',
+            'ACCOUNTANT',
+            'OFFICER_IN_CHARGE'
         ],
         description: 'Rate peer performance',
-        customCheck: (user) => user?.role !== ROLES.FACULTY_IN_CHARGE
+        customCheck: (user) => user?.role !== 'FACULTY_IN_CHARGE'
     },
     'variable-remuneration': {
-        allowedRoles: [ROLES.FACULTY_IN_CHARGE],
+        allowedRoles: ['FACULTY_IN_CHARGE'],
         description: 'Manage variable remuneration for faculty'
     },
     remuneration: {
-        allowedRoles: ROLE_GROUPS.MANAGERS,
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
         description: 'View remuneration details'
     },
     calendar: {
-        allowedRoles: ROLE_GROUPS.MANAGERS,
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
         description: 'View and manage calendar'
     },
     efiling: {
-        allowedRoles: ROLE_GROUPS.MANAGERS,
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
         description: 'Electronic file management'
     },
     settings: {
-        allowedRoles: ROLE_GROUPS.MANAGERS,
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
         description: 'System settings and configuration'
     },
     profile: {
-        allowedRoles: ROLE_GROUPS.ALL,
+        allowedRoles: ROLE_GROUPS_HELPER.ALL,
         description: 'Edit user profile'
+    },
+    admin: {
+        allowedRoles: ['ADMIN'],
+        description: 'Admin configuration panel for role and permission management'
     }
 };
 
@@ -81,55 +97,55 @@ export const COMPONENT_PERMISSIONS = {
  */
 export const FEATURE_PERMISSIONS = {
     'employee.create': {
-        allowedRoles: [ROLES.ADMIN, ROLES.CEO],
+        allowedRoles: ['ADMIN', 'CEO'],
         description: 'Create new employee accounts'
     },
     'employee.edit': {
-        allowedRoles: ROLE_GROUPS.MANAGERS,
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
         description: 'Edit employee information'
     },
     'employee.delete': {
-        allowedRoles: [ROLES.ADMIN, ROLES.CEO],
+        allowedRoles: ['ADMIN', 'CEO'],
         description: 'Delete employee accounts'
     },
     'employee.viewAll': {
-        allowedRoles: ROLE_GROUPS.MANAGERS,
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
         description: 'View all employees'
     },
     'salary.viewAll': {
-        allowedRoles: [ROLES.ACCOUNTANT],
+        allowedRoles: ['ACCOUNTANT'],
         description: 'View all employee salaries'
     },
     'salary.viewOwn': {
-        allowedRoles: [ROLES.EMPLOYEE],
+        allowedRoles: ['EMPLOYEE'],
         description: 'View own salary only'
     },
     'salary.edit': {
-        allowedRoles: [ROLES.ACCOUNTANT],
+        allowedRoles: ['ACCOUNTANT'],
         description: 'Edit salary information'
     },
     'leave.approve': {
-        allowedRoles: ROLE_GROUPS.MANAGERS,
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
         description: 'Approve leave requests'
     },
     'leave.apply': {
-        allowedRoles: ROLE_GROUPS.ALL,
+        allowedRoles: ROLE_GROUPS_HELPER.ALL,
         description: 'Apply for leave'
     },
     'attendance.mark': {
-        allowedRoles: ROLE_GROUPS.MANAGERS,
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
         description: 'Mark attendance for employees'
     },
     'attendance.viewReports': {
-        allowedRoles: ROLE_GROUPS.MANAGERS,
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
         description: 'View attendance reports'
     },
     'remuneration.view': {
-        allowedRoles: ROLE_GROUPS.MANAGERS,
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
         description: 'View remuneration information'
     },
     'remuneration.variable': {
-        allowedRoles: [ROLES.FACULTY_IN_CHARGE],
+        allowedRoles: ['FACULTY_IN_CHARGE'],
         description: 'Manage variable remuneration'
     }
 };
@@ -145,35 +161,35 @@ export const NAVIGATION_ITEMS = [
         label: 'Dashboard',
         icon: 'LayoutDashboard',
         view: 'dashboard',
-        allowedRoles: ROLE_GROUPS.ALL
+        allowedRoles: ROLE_GROUPS_HELPER.ALL
     },
     {
         id: 'employees',
         label: 'Employees',
         icon: 'Users',
         view: 'employees',
-        allowedRoles: ROLE_GROUPS.MANAGERS
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS
     },
     {
         id: 'attendance',
         label: 'Attendance',
         icon: 'CalendarCheck',
         view: 'attendance',
-        allowedRoles: ROLE_GROUPS.MANAGERS
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS
     },
     {
         id: 'leave',
         label: 'Leave',
         icon: 'Clock',
         view: 'leave',
-        allowedRoles: ROLE_GROUPS.MANAGERS
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS
     },
     {
         id: 'salary',
         label: 'Salary',
         icon: 'DollarSign',
         view: 'salary',
-        allowedRoles: [ROLES.ACCOUNTANT, ROLES.EMPLOYEE]
+        allowedRoles: ['ACCOUNTANT', 'EMPLOYEE']
     },
     {
         id: 'peer-rating',
@@ -181,48 +197,55 @@ export const NAVIGATION_ITEMS = [
         icon: 'Star',
         view: 'peer-rating',
         allowedRoles: [
-            ROLES.ADMIN,
-            ROLES.CEO,
-            ROLES.INCUBATION_MANAGER,
-            ROLES.ACCOUNTANT,
-            ROLES.OFFICER_IN_CHARGE
+            'ADMIN',
+            'CEO',
+            'INCUBATION_MANAGER',
+            'ACCOUNTANT',
+            'OFFICER_IN_CHARGE'
         ],
-        customCheck: (user) => user?.role !== ROLES.FACULTY_IN_CHARGE
+        customCheck: (user) => user?.role !== 'FACULTY_IN_CHARGE'
     },
     {
         id: 'variable-remuneration',
         label: 'Variable Remuneration',
         icon: 'Star',
         view: 'variable-remuneration',
-        allowedRoles: [ROLES.FACULTY_IN_CHARGE]
+        allowedRoles: ['FACULTY_IN_CHARGE']
     },
     {
         id: 'remuneration',
         label: 'Remuneration',
         icon: 'FileText',
         view: 'remuneration',
-        allowedRoles: ROLE_GROUPS.MANAGERS
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS
     },
     {
         id: 'calendar',
         label: 'Calendar',
         icon: 'FileText',
         view: 'calendar',
-        allowedRoles: ROLE_GROUPS.MANAGERS
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS
     },
     {
         id: 'efiling',
         label: 'E-Filing',
         icon: 'FolderOpen',
         view: 'efiling',
-        allowedRoles: ROLE_GROUPS.MANAGERS
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS
     },
     {
         id: 'settings',
         label: 'Settings',
         icon: 'SettingsIcon',
         view: 'settings',
-        allowedRoles: ROLE_GROUPS.MANAGERS
+        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS
+    },
+    {
+        id: 'admin',
+        label: 'Admin Panel',
+        icon: 'Shield',
+        view: 'admin',
+        allowedRoles: ['ADMIN']
     }
 ];
 
@@ -252,9 +275,17 @@ export const canAccessFeature = (featureId, user) => {
     return permission.allowedRoles.includes(user.role);
 };
 
-export const getAccessibleNavItems = (user) => {
+export const getAccessibleNavItems = (user, canAccessComponentFn) => {
     if (!user || !user.role) return [];
     
+    // If canAccessComponentFn is provided, use database permissions
+    if (canAccessComponentFn) {
+        return NAVIGATION_ITEMS.filter(item => {
+            return canAccessComponentFn(item.view);
+        });
+    }
+    
+    // Fallback to hardcoded permissions (for backward compatibility)
     return NAVIGATION_ITEMS.filter(item => {
         const hasRoleAccess = item.allowedRoles.includes(user.role);
         if (item.customCheck) {

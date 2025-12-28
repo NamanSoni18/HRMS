@@ -1,18 +1,72 @@
 import { createContext, useContext, useState, useMemo, useEffect } from "react";
-import {
-  ROLES,
-  ROLE_HIERARCHY,
-  hasPermission,
-  canManageRole,
-  getSubordinateRoles,
-} from "../constants/roles";
-import { authAPI } from "../services/api";
+import { authAPI, adminAPI } from "../services/api";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [systemRoles, setSystemRoles] = useState([]);
+  const [roleHierarchy, setRoleHierarchy] = useState({});
+  const [rolesLoading, setRolesLoading] = useState(true);
+  const [userPermissions, setUserPermissions] = useState({ componentAccess: [], featureAccess: [] });
+
+  // Fetch system roles from database
+  useEffect(() => {
+    const fetchSystemRoles = async () => {
+      try {
+        const response = await adminAPI.getAllValidRoles();
+        if (response.success) {
+          setSystemRoles(response.roles || []);
+          
+          // Build role hierarchy from roles data
+          const hierarchy = {};
+          if (response.roleDetails) {
+            response.roleDetails.forEach(role => {
+              hierarchy[role.roleId] = role.hierarchyLevel;
+            });
+          }
+          setRoleHierarchy(hierarchy);
+        }
+      } catch (error) {
+        console.error('Failed to fetch system roles:', error);
+        // Fallback to minimal roles
+        setSystemRoles(['ADMIN', 'CEO', 'EMPLOYEE']);
+        setRoleHierarchy({ ADMIN: 0, CEO: 1, EMPLOYEE: 3 });
+      } finally {
+        setRolesLoading(false);
+      }
+    };
+
+    fetchSystemRoles();
+  }, []);
+
+  // Fetch user permissions when user role changes
+  useEffect(() => {
+    const fetchUserPermissions = async () => {
+      if (user?.role) {
+        try {
+          const response = await adminAPI.getUserPermissions(user.role);
+          if (response.success) {
+            setUserPermissions({
+              componentAccess: response.componentAccess || [],
+              featureAccess: response.featureAccess || []
+            });
+          } else {
+            console.error('Failed to fetch user permissions:', response.message);
+            setUserPermissions({ componentAccess: [], featureAccess: [] });
+          }
+        } catch (error) {
+          console.error('Error fetching user permissions:', error);
+          setUserPermissions({ componentAccess: [], featureAccess: [] });
+        }
+      } else {
+        setUserPermissions({ componentAccess: [], featureAccess: [] });
+      }
+    };
+    
+    fetchUserPermissions();
+  }, [user?.role]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -84,20 +138,78 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Dynamic permission checking
+  const hasPermission = (userRole, requiredLevel) => {
+    const userLevel = roleHierarchy[userRole];
+    return userLevel !== undefined && userLevel <= requiredLevel;
+  };
+
+  const canManageRole = (userRole, targetRole) => {
+    const userLevel = roleHierarchy[userRole];
+    const targetLevel = roleHierarchy[targetRole];
+    return userLevel !== undefined && targetLevel !== undefined && userLevel < targetLevel;
+  };
+
+  const getSubordinateRoles = (userRole) => {
+    const userLevel = roleHierarchy[userRole];
+    if (userLevel === undefined) return [];
+    
+    return systemRoles.filter(role => {
+      const roleLevel = roleHierarchy[role];
+      return roleLevel !== undefined && roleLevel > userLevel;
+    });
+  };
+
+  const getRoleDisplayName = (roleId) => {
+    // Convert ROLE_ID to display format (e.g., "INCUBATION_MANAGER" -> "Incubation Manager")
+    if (!roleId) return '';
+    return roleId
+      .split('_')
+      .map(word => word.charAt(0) + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
+  const getRoleHierarchyLevel = (roleId) => {
+    return roleHierarchy[roleId] ?? 99;
+  };
+
+  const canAccessComponent = (componentId) => {
+    if (!user || !userPermissions.componentAccess) return false;
+    return userPermissions.componentAccess.includes(componentId);
+  };
+
+  const canAccessFeature = (featureId) => {
+    if (!user || !userPermissions.featureAccess) return false;
+    return userPermissions.featureAccess.includes(featureId);
+  };
+
   const value = useMemo(
     () => ({
       user,
-      loading,
+      loading: loading || rolesLoading,
       isAuthenticated: !!user,
       isAdmin: user?.isAdmin || false,
       role: user?.role || null,
+      // Dynamic role data
+      systemRoles,
+      roleHierarchy,
+      rolesLoading,
+      userPermissions,
+      // Helper functions
       login,
       logout,
       hasPermission: (level) => user && hasPermission(user.role, level),
       canManage: (targetRole) => user && canManageRole(user.role, targetRole),
       getSubordinates: () => (user ? getSubordinateRoles(user.role) : []),
+      getRoleDisplayName,
+      getRoleHierarchyLevel,
+      canAccessComponent,
+      canAccessFeature,
+      // Backward compatibility
+      ROLES: systemRoles.reduce((acc, role) => ({ ...acc, [role]: role }), {}),
+      ROLE_HIERARCHY: roleHierarchy,
     }),
-    [user, loading]
+    [user, loading, systemRoles, roleHierarchy, rolesLoading, userPermissions]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

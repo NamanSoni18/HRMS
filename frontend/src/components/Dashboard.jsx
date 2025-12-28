@@ -12,9 +12,10 @@ import {
   DollarSign,
   FolderOpen,
   UserCircle,
+  Shield,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { ROLE_HIERARCHY } from "../constants/roles";
+
 import { getAccessibleNavItems } from "../constants/permissions";
 import { dashboardAPI, getPhotoUrl } from "../services/api";
 import VariableRemuneration from "./VariableRemuneration";
@@ -27,11 +28,12 @@ import Salary from "./Salary";
 import EFiling from "./EFiling";
 import Settings from "./Settings";
 import ProfileEdit from "./ProfileEdit";
+import AdminPanel from "./AdminPanel";
 import "./Dashboard.css";
 import Calendar from "./calendar";
 
 const Dashboard = ({ onLogout }) => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, getRoleHierarchyLevel, canAccessComponent } = useAuth();
   const [activeView, setActiveView] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
@@ -95,10 +97,10 @@ const Dashboard = ({ onLogout }) => {
     );
   };
 
-  const userLevel = ROLE_HIERARCHY[user?.role] ?? 99;
+  const userLevel = getRoleHierarchyLevel(user?.role);
   
-  // Get navigation items accessible to current user
-  const accessibleNavItems = getAccessibleNavItems(user);
+  // Get navigation items accessible to current user (using database permissions)
+  const accessibleNavItems = getAccessibleNavItems(user, canAccessComponent);
   
   // Icon mapping for navigation items
   const iconMap = {
@@ -110,7 +112,8 @@ const Dashboard = ({ onLogout }) => {
     Star,
     FileText,
     FolderOpen,
-    SettingsIcon
+    SettingsIcon,
+    Shield
   };
 
   const stats = [
@@ -246,6 +249,8 @@ const Dashboard = ({ onLogout }) => {
         return <Settings />;
       case "calendar":
         return <Calendar/>
+      case "admin":
+        return <AdminPanel />;
       case "profile":
         return <ProfileEdit onBack={() => setActiveView("dashboard")} />;
       default:
