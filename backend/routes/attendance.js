@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Attendance = require('../models/Attendance');
 const User = require('../models/User');
 const { protect, isAdminOrCEO } = require('../middleware/auth');
@@ -22,6 +23,11 @@ router.post('/check-in', protect, async (req, res) => {
         const cutoffHour = 11;
         const isLate = now.getHours() >= cutoffHour;
         
+        // Get user's name to store in attendance
+        const userName = req.user.profile?.firstName 
+            ? `${req.user.profile.firstName} ${req.user.profile.lastName || ''}`.trim()
+            : req.user.username;
+        
         let attendance;
         if (existingAttendance) {
             existingAttendance.checkIn = {
@@ -30,10 +36,12 @@ router.post('/check-in', protect, async (req, res) => {
             };
             existingAttendance.status = isLate ? 'late' : 'present';
             existingAttendance.isLate = isLate;
+            existingAttendance.userName = userName;
             attendance = await existingAttendance.save();
         } else {
             attendance = await Attendance.create({
                 user: req.user._id,
+                userName: userName,
                 date: today,
                 checkIn: {
                     time: now,
@@ -112,10 +120,45 @@ router.get('/my', protect, async (req, res) => {
             endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         }
         
-        const attendance = await Attendance.find({
-            user: req.user._id,
-            date: { $gte: startDate, $lte: endDate }
-        }).sort({ date: -1 });
+        const attendance = await Attendance.aggregate([
+            {
+                $match: {
+                    user: req.user._id,
+                    date: { $gte: startDate, $lte: endDate }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'userDetails'
+                }
+            },
+            {
+                $unwind: '$userDetails'
+            },
+            {
+                $addFields: {
+                    userName: {
+                        $concat: [
+                            { $ifNull: ['$userDetails.profile.firstName', ''] },
+                            ' ',
+                            { $ifNull: ['$userDetails.profile.lastName', ''] }
+                        ]
+                    },
+                    username: '$userDetails.username'
+                }
+            },
+            {
+                $project: {
+                    userDetails: 0
+                }
+            },
+            {
+                $sort: { date: -1 }
+            }
+        ]);
         
         const stats = {
             present: attendance.filter(a => a.status === 'present').length,
@@ -137,12 +180,44 @@ router.get('/today', protect, async (req, res) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        const attendance = await Attendance.findOne({
-            user: req.user._id,
-            date: today
-        });
+        const attendance = await Attendance.aggregate([
+            {
+                $match: {
+                    user: req.user._id,
+                    date: today
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'userDetails'
+                }
+            },
+            {
+                $unwind: { path: '$userDetails', preserveNullAndEmptyArrays: true }
+            },
+            {
+                $addFields: {
+                    userName: {
+                        $concat: [
+                            { $ifNull: ['$userDetails.profile.firstName', ''] },
+                            ' ',
+                            { $ifNull: ['$userDetails.profile.lastName', ''] }
+                        ]
+                    },
+                    username: '$userDetails.username'
+                }
+            },
+            {
+                $project: {
+                    userDetails: 0
+                }
+            }
+        ]);
         
-        res.json({ success: true, attendance });
+        res.json({ success: true, attendance: attendance[0] || null });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
@@ -155,14 +230,49 @@ router.get('/all', protect, isAdminOrCEO, async (req, res) => {
         const targetDate = date ? new Date(date) : new Date();
         targetDate.setHours(0, 0, 0, 0);
         
-        const attendance = await Attendance.find({ date: targetDate })
-            .populate('user', 'username profile.firstName profile.lastName employment.designation role')
-            .sort({ 'checkIn.time': 1 });
+        const attendance = await Attendance.aggregate([
+            {
+                $match: { date: targetDate }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'userDetails'
+                }
+            },
+            {
+                $unwind: '$userDetails'
+            },
+            {
+                $addFields: {
+                    userName: {
+                        $concat: [
+                            { $ifNull: ['$userDetails.profile.firstName', ''] },
+                            ' ',
+                            { $ifNull: ['$userDetails.profile.lastName', ''] }
+                        ]
+                    },
+                    username: '$userDetails.username',
+                    designation: '$userDetails.employment.designation',
+                    role: '$userDetails.role'
+                }
+            },
+            {
+                $project: {
+                    userDetails: 0
+                }
+            },
+            {
+                $sort: { 'checkIn.time': 1 }
+            }
+        ]);
         
         const allUsers = await User.find({ isActive: true })
             .select('username profile.firstName profile.lastName employment.designation role');
         
-        const presentUserIds = attendance.map(a => a.user._id.toString());
+        const presentUserIds = attendance.map(a => a.user.toString());
         const absentUsers = allUsers.filter(u => !presentUserIds.includes(u._id.toString()));
         
         res.json({
@@ -198,10 +308,45 @@ router.get('/user/:userId', protect, isAdminOrCEO, async (req, res) => {
             endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         }
         
-        const attendance = await Attendance.find({
-            user: req.params.userId,
-            date: { $gte: startDate, $lte: endDate }
-        }).sort({ date: -1 });
+        const attendance = await Attendance.aggregate([
+            {
+                $match: {
+                    user: new mongoose.Types.ObjectId(req.params.userId),
+                    date: { $gte: startDate, $lte: endDate }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'userDetails'
+                }
+            },
+            {
+                $unwind: '$userDetails'
+            },
+            {
+                $addFields: {
+                    userName: {
+                        $concat: [
+                            { $ifNull: ['$userDetails.profile.firstName', ''] },
+                            ' ',
+                            { $ifNull: ['$userDetails.profile.lastName', ''] }
+                        ]
+                    },
+                    username: '$userDetails.username'
+                }
+            },
+            {
+                $project: {
+                    userDetails: 0
+                }
+            },
+            {
+                $sort: { date: -1 }
+            }
+        ]);
         
         res.json({ success: true, attendance });
     } catch (error) {
