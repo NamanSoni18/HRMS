@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { Download, Save } from "lucide-react";
-import { usersAPI, attendanceAPI, leaveAPI } from "../services/api";
+import { usersAPI, attendanceAPI, leaveAPI, remunerationAPI } from "../services/api";
 
 const Remuneration = () => {
   const { user, canAccessFeature } = useAuth();
@@ -97,10 +97,11 @@ const Remuneration = () => {
     currentDate.getMonth()
   );
 
-  // Fetch attendance data for all employees on mount
+  // Fetch attendance data, leave data, and remuneration data on mount
   useEffect(() => {
     fetchAllEmployeesAttendance();
     fetchAllEmployeesLeaves();
+    fetchRemunerationData();
   }, [currentMonth, currentYear]);
 
   const fetchAllEmployeesAttendance = async () => {
@@ -169,6 +170,73 @@ const Remuneration = () => {
       console.error("Failed to fetch attendance data:", error);
     } finally {
       setLoadingAttendance(false);
+    }
+  };
+
+  const fetchRemunerationData = async () => {
+    try {
+      // Fetch saved remuneration data from database
+      const response = await remunerationAPI.get(currentMonth, currentYear);
+      
+      if (response.success && response.records && response.records.length > 0) {
+        // Use the fetched data
+        setEmployees(response.records.map(record => ({
+          id: record.id,
+          employeeId: record.employeeId,
+          name: record.name,
+          designation: record.designation,
+          dateOfJoining: record.dateOfJoining,
+          grossRemuneration: record.grossRemuneration,
+          daysWorked: record.daysWorked,
+          casualLeave: record.casualLeave,
+          weeklyOff: record.weeklyOff,
+          holidays: record.holidays,
+          lwpDays: record.lwpDays,
+          totalDays: record.totalDays,
+          payableDays: record.payableDays,
+          fixedRemuneration: record.fixedRemuneration,
+          variableRemuneration: record.variableRemuneration,
+          totalRemuneration: record.totalRemuneration,
+          tds: record.tds,
+          otherDeduction: record.otherDeduction,
+          netPayable: record.netPayable,
+          panBankDetails: record.panBankDetails
+        })));
+      } else {
+        // No saved data, fetch users from database
+        const usersResponse = await usersAPI.getAll();
+        
+        if (usersResponse.success && usersResponse.users) {
+          const filteredUsers = usersResponse.users.filter(
+            user => user.role !== 'FACULTY_IN_CHARGE' && user.role !== 'OFFICER_IN_CHARGE'
+          );
+          
+          setEmployees(filteredUsers.map(user => ({
+            id: user._id,
+            employeeId: user.employment?.employeeId || user._id,
+            name: `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim() || user.username,
+            designation: user.employment?.designation || user.role,
+            dateOfJoining: user.employment?.dateOfJoining || '',
+            grossRemuneration: user.employment?.grossRemuneration || 0,
+            daysWorked: '',
+            casualLeave: '',
+            weeklyOff: '',
+            holidays: '',
+            lwpDays: '',
+            totalDays: '',
+            payableDays: '',
+            fixedRemuneration: (user.employment?.grossRemuneration || 0) * 0.8,
+            variableRemuneration: (user.employment?.grossRemuneration || 0) * 0.2,
+            totalRemuneration: user.employment?.grossRemuneration || 0,
+            tds: 0,
+            otherDeduction: 0,
+            netPayable: user.employment?.grossRemuneration || 0,
+            panBankDetails: ''
+          })));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch remuneration data:', error);
     }
   };
 
@@ -243,124 +311,8 @@ const Remuneration = () => {
     }
   };
 
-  // Sample employee data - attendance columns left blank for current month
-  const [employees, setEmployees] = useState([
-    {
-      id: 1,
-      employeeId: "NITR-CEO-001",
-      name: "Mr. Medha Singh",
-      designation: "Chief Executive Officer",
-      dateOfJoining: "15-07-2025",
-      grossRemuneration: 80000,
-      daysWorked: "",
-      casualLeave: "",
-      weeklyOff: "",
-      holidays: "",
-      lwpDays: "",
-      totalDays: "",
-      payableDays: "",
-      fixedRemuneration: 64000.0,
-      variableRemuneration: 16000.0,
-      totalRemuneration: 80000.0,
-      tds: 0.0,
-      otherDeduction: 0.0,
-      netPayable: 80000.0,
-      panBankDetails:
-        "PAN: BHRPS4064A\nBANK: IDBI Bank,\nCivil Lines, Raipur\nA/C: 0495104000146716\nIFSC:IBKL0000495",
-    },
-    {
-      id: 2,
-      employeeId: "NITR-MGR-001",
-      name: "Mr. Sunil Dewangan",
-      designation: "Incubation Manager",
-      dateOfJoining: "10/9/2025",
-      grossRemuneration: 54000,
-      daysWorked: "",
-      casualLeave: "",
-      weeklyOff: "",
-      holidays: "",
-      lwpDays: "",
-      totalDays: "",
-      payableDays: "",
-      fixedRemuneration: 43200.0,
-      variableRemuneration: 10800.0,
-      totalRemuneration: 54000.0,
-      tds: 0.0,
-      otherDeduction: 0.0,
-      netPayable: 54000.0,
-      panBankDetails:
-        "PAN: BJZPD0141A\nBANK: State Bank of India,\nCamp Area Bhilai,\nNear Power House, Bhilai\nA/C: 38072524817\nIFSC: SBIN0009154",
-    },
-    {
-      id: 3,
-      employeeId: "NITR-ACC-001",
-      name: "Mr. Ashok Sahu",
-      designation: "Accountant Cum Administrator",
-      dateOfJoining: "30/9/25",
-      grossRemuneration: 32400,
-      daysWorked: "",
-      casualLeave: "",
-      weeklyOff: "",
-      holidays: "",
-      lwpDays: "",
-      totalDays: "",
-      payableDays: "",
-      fixedRemuneration: 25920.0,
-      variableRemuneration: 6480.0,
-      totalRemuneration: 32400.0,
-      tds: 0.0,
-      otherDeduction: 0.0,
-      netPayable: 32400.0,
-      panBankDetails:
-        "PAN: BCPPA5763A\nBANK: State Bank of India,\nTelibandha GE Road, Near\nRailway Crossing\nA/C: 30174860333\nIFSC: SBIN0005194",
-    },
-    {
-      id: 4,
-      employeeId: "EMP004",
-      name: "Mr. Himanshu Verma",
-      designation: "Support Staff",
-      dateOfJoining: "18/10/25",
-      grossRemuneration: 10000,
-      daysWorked: "",
-      casualLeave: "",
-      weeklyOff: "",
-      holidays: "",
-      lwpDays: "",
-      totalDays: "",
-      payableDays: "",
-      fixedRemuneration: 8000.0,
-      variableRemuneration: 2000.0,
-      totalRemuneration: 10000.0,
-      tds: 0.0,
-      otherDeduction: 0.0,
-      netPayable: 10000.0,
-      panBankDetails:
-        "PAN: CUTPV9394L\nBANK: State Bank of India,\nNesta, Tilda\nA/C: 39634349811\nIFSC: SBIN0001470",
-    },
-    {
-      id: 5,
-      employeeId: "EMP005",
-      name: "Mr. Naresh Kumar",
-      designation: "Hardware Maintenance Engineer",
-      dateOfJoining: "24/11/24",
-      grossRemuneration: 25000,
-      daysWorked: "",
-      casualLeave: "",
-      weeklyOff: "",
-      holidays: "",
-      lwpDays: "",
-      totalDays: "",
-      payableDays: "",
-      fixedRemuneration: 20000.0,
-      variableRemuneration: 5000.0,
-      totalRemuneration: 25000.0,
-      tds: 0.0,
-      otherDeduction: 0.0,
-      netPayable: 25000.0,
-      panBankDetails:
-        "PAN: BSVPK8707R\nBANK: Union Bank of India,\nBorsi, Durg\nA/C: 747902010017132\nIFSC: UBIN0576708",
-    },
-  ]);
+  // Initialize employees state as empty array - will be populated from database
+  const [employees, setEmployees] = useState([]);
 
   const handleChange = (id, field, value) => {
     if (!canEditRemuneration) return;
@@ -389,8 +341,33 @@ const Remuneration = () => {
     if (!canEditRemuneration) return;
     setSaving(true);
     try {
-      // Placeholder - backend to be implemented later
-      alert("Remuneration data saved successfully!");
+      const remunerationData = employees.map(emp => ({
+        employeeId: emp.id,
+        employeeIdString: emp.employeeId,
+        grossRemuneration: parseFloat(emp.grossRemuneration) || 0,
+        daysWorked: attendanceData[emp.employeeId] || 0,
+        casualLeave: casualLeaveData[emp.employeeId] || 0,
+        weeklyOff: totalWeekendDays,
+        holidays: currentMonthHolidays,
+        lwpDays: lwpData[emp.employeeId] || 0,
+        totalDays: totalDaysInMonth,
+        payableDays: calculatePayableDays(emp),
+        fixedRemuneration: parseFloat(emp.fixedRemuneration) || 0,
+        variableRemuneration: parseFloat(emp.variableRemuneration) || 0,
+        totalRemuneration: parseFloat(emp.totalRemuneration) || 0,
+        tds: parseFloat(emp.tds) || 0,
+        otherDeduction: parseFloat(emp.otherDeduction) || 0,
+        netPayable: parseFloat(calculateNetPayable(emp)) || 0,
+        panBankDetails: emp.panBankDetails || ''
+      }));
+      
+      const response = await remunerationAPI.save(remunerationData, currentMonth, currentYear);
+      
+      if (response.success) {
+        alert("Remuneration data saved successfully!");
+      } else {
+        alert(response.message || "Failed to save data. Please try again.");
+      }
     } catch (error) {
       console.error("Save failed:", error);
       alert("Failed to save data. Please try again.");
