@@ -186,7 +186,7 @@ const Dashboard = ({ onLogout }) => {
       <header className="ceo-header">
         <div className="ceo-header-left">
           <h1>Dashboard</h1>
-          <p>Welcome back, {user?.username || "CEO"}</p>
+          <p>Welcome back, {user?.profile.firstName + " " + user?.profile.lastName || "CEO"}</p>
         </div>
       </header>
 
