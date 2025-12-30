@@ -107,8 +107,39 @@ const AttendanceRecord = () => {
     const totalWorkingDays = getWorkingDaysInMonth(year, month);
     const workingDaysPassed = getWorkingDaysPassed(year, month, today);
 
-    const daysPresent = attendanceHistory.filter(a => a.status === 'present').length + (checkInTime ? 1 : 0);
-    const daysAbsent = workingDaysPassed - attendanceHistory.filter(a => a.status === 'present').length;
+    const calculateStats = () => {
+        // Filter out today's record from history to avoid double counting if it's already there
+        const historyExcludingToday = attendanceHistory.filter(a => {
+            const attDate = new Date(a.date).toDateString();
+            return attDate !== new Date().toDateString();
+        });
+
+        let presentCount = 0;
+
+        // Calculate from history
+        historyExcludingToday.forEach(a => {
+            if (a.status === 'present' || a.status === 'late') presentCount += 1;
+            else if (a.status === 'half-day') presentCount += 0.5;
+        });
+
+        // Add today's contribution
+        if (todayAttendance) {
+            if (todayAttendance.status === 'present' || todayAttendance.status === 'late') {
+                presentCount += 1;
+            } else if (todayAttendance.status === 'half-day') {
+                presentCount += 0.5;
+            }
+            // If absent/on-leave, add 0
+        } else if (checkInTime) {
+            // Optimistic update: if checked in but no confirmed record yet (rare), assume present
+            presentCount += 1;
+        }
+
+        return presentCount;
+    };
+
+    const daysPresent = calculateStats();
+    const daysAbsent = Math.max(0, workingDaysPassed - daysPresent);
 
     const isCheckInDisabled = () => {
         const hours = currentTime.getHours();
