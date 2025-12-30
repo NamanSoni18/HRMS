@@ -760,6 +760,8 @@ const Remuneration = () => {
           </div>
         </div>
       </div>
+
+      
     </div>
   );
 };
