@@ -29,7 +29,7 @@ import EFiling from "./EFiling";
 import ProfileEdit from "./ProfileEdit";
 import AdminPanel from "./AdminPanel";
 import "./Dashboard.css";
-import Calendar from "./calendar";
+import Calendar from "./Calendar";
 
 const Dashboard = ({ onLogout }) => {
   const { user, isAdmin, getRoleHierarchyLevel, canAccessComponent } =
