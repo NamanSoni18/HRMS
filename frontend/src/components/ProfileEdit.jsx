@@ -13,9 +13,16 @@ const ProfileEdit = ({ onBack }) => {
         firstName: '',
         lastName: '',
         phone: '',
+        personalEmail: '',
         gender: '',
         dateOfBirth: '',
         address: {
+            street: '',
+            city: '',
+            state: '',
+            pincode: ''
+        },
+        personalAddress: {
             street: '',
             city: '',
             state: '',
@@ -47,6 +54,7 @@ const ProfileEdit = ({ onBack }) => {
                         firstName: userData.profile?.firstName || '',
                         lastName: userData.profile?.lastName || '',
                         phone: userData.profile?.phone || '',
+                        personalEmail: userData.profile?.personalEmail || '',
                         gender: userData.profile?.gender || '',
                         dateOfBirth: userData.profile?.dateOfBirth 
                             ? new Date(userData.profile.dateOfBirth).toISOString().split('T')[0] 
@@ -56,6 +64,12 @@ const ProfileEdit = ({ onBack }) => {
                             city: userData.profile?.address?.city || '',
                             state: userData.profile?.address?.state || '',
                             pincode: userData.profile?.address?.pincode || ''
+                        },
+                        personalAddress: {
+                            street: userData.profile?.personalAddress?.street || '',
+                            city: userData.profile?.personalAddress?.city || '',
+                            state: userData.profile?.personalAddress?.state || '',
+                            pincode: userData.profile?.personalAddress?.pincode || ''
                         }
                     });
                     
@@ -92,6 +106,15 @@ const ProfileEdit = ({ onBack }) => {
                 ...prev,
                 address: {
                     ...prev.address,
+                    [addressField]: value
+                }
+            }));
+        } else if (name.startsWith('personalAddress.')) {
+            const addressField = name.split('.')[1];
+            setFormData(prev => ({
+                ...prev,
+                personalAddress: {
+                    ...prev.personalAddress,
                     [addressField]: value
                 }
             }));
@@ -175,6 +198,7 @@ const ProfileEdit = ({ onBack }) => {
                 firstName: formData.firstName,
                 lastName: formData.lastName,
                 phone: formData.phone,
+                personalEmail: formData.personalEmail,
                 gender: formData.gender,
                 dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : null,
                 address: {
@@ -182,6 +206,12 @@ const ProfileEdit = ({ onBack }) => {
                     city: formData.address.city,
                     state: formData.address.state,
                     pincode: formData.address.pincode
+                },
+                personalAddress: {
+                    street: formData.personalAddress.street,
+                    city: formData.personalAddress.city,
+                    state: formData.personalAddress.state,
+                    pincode: formData.personalAddress.pincode
                 }
             };
 
@@ -318,6 +348,19 @@ const ProfileEdit = ({ onBack }) => {
                             />
                         </div>
                         <div className="form-group">
+                            <label>Personal Email</label>
+                            <input
+                                type="email"
+                                name="personalEmail"
+                                value={formData.personalEmail}
+                                onChange={handleChange}
+                                placeholder="personal@example.com"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
                             <label>Date of Birth</label>
                             <input
                                 type="date"
@@ -325,6 +368,9 @@ const ProfileEdit = ({ onBack }) => {
                                 value={formData.dateOfBirth}
                                 onChange={handleChange}
                             />
+                        </div>
+                        <div className="form-group">
+                            {/* Empty space for layout alignment */}
                         </div>
                     </div>
 
@@ -354,6 +400,7 @@ const ProfileEdit = ({ onBack }) => {
                         </div>
                     </div>
 
+                    <h3 style={{ marginTop: '2rem', marginBottom: '1rem', color: '#333' }}>College Address</h3>
                     <div className="form-row">
                         <div className="form-group">
                             <label>Street Address</label>
@@ -394,6 +441,54 @@ const ProfileEdit = ({ onBack }) => {
                                 type="text"
                                 name="address.pincode"
                                 value={formData.address.pincode}
+                                onChange={handleChange}
+                                placeholder="Pincode"
+                                maxLength="6"
+                            />
+                        </div>
+                    </div>
+
+                    <h3 style={{ marginTop: '2rem', marginBottom: '1rem', color: '#333' }}>Personal Address</h3>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Street Address</label>
+                            <input
+                                type="text"
+                                name="personalAddress.street"
+                                value={formData.personalAddress.street}
+                                onChange={handleChange}
+                                placeholder="Street address"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>City</label>
+                            <input
+                                type="text"
+                                name="personalAddress.city"
+                                value={formData.personalAddress.city}
+                                onChange={handleChange}
+                                placeholder="City"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>State</label>
+                            <input
+                                type="text"
+                                name="personalAddress.state"
+                                value={formData.personalAddress.state}
+                                onChange={handleChange}
+                                placeholder="State"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Pincode</label>
+                            <input
+                                type="text"
+                                name="personalAddress.pincode"
+                                value={formData.personalAddress.pincode}
                                 onChange={handleChange}
                                 placeholder="Pincode"
                                 maxLength="6"

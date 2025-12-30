@@ -31,9 +31,16 @@ const UserSchema = new mongoose.Schema({
         firstName: String,
         lastName: String,
         phone: String,
+        personalEmail: String,
         dateOfBirth: Date,
         gender: { type: String, enum: ['Male', 'Female', 'Other'] },
         address: {
+            street: String,
+            city: String,
+            state: String,
+            pincode: String
+        },
+        personalAddress: {
             street: String,
             city: String,
             state: String,
