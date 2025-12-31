@@ -76,10 +76,12 @@ router.get("/", protect, async (req, res) => {
     // Activities - only show attendance-related activities if user has viewReports permission
     const activities = [];
     if (isUserManagement) {
-      const attendanceWithUsers = await Attendance.find({ date: today })
-        .populate("user", "username profile.firstName profile.lastName")
-        .sort({ checkInTime: -1 })
-        .limit(3);
+      // Only add attendance activities if user has viewReports permission
+      if (hasViewReportsPermission) {
+        const attendanceWithUsers = await Attendance.find({ date: today })
+          .populate("user", "username profile.firstName profile.lastName")
+          .sort({ checkInTime: -1 })
+          .limit(3);
 
         for (const att of attendanceWithUsers) {
           const name = att.user?.profile?.firstName
