@@ -479,4 +479,104 @@
     }
 }
 
+/* Month Year Selector Styles */
+.month-year-selector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    gap: 15px;
+}
+
+.month-year-selector label {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.selector-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.month-select,
+.year-select {
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 2px solid #fff;
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.month-select:hover,
+.year-select:hover {
+    background: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.month-select:focus,
+.year-select:focus {
+    outline: none;
+    border-color: #ffd700;
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+}
+
+.generate-btn {
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.generate-btn:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.generate-btn:active {
+    transform: translateY(0);
+}
+
+/* No Data Message Styles */
+.no-data-message {
+    text-align: center;
+    padding: 40px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 12px;
+    margin: 20px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.no-data-message p:first-child {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 12px;
+}
+
+.no-data-message p:last-child {
+    font-size: 1rem;
+    color: #666;
+    margin: 0;
+}
+
 
