@@ -12,12 +12,12 @@ router.get("/", protect, async (req, res) => {
 
     // Check if user is management
     const managementRoles = [
-      'ADMIN',
-      'CEO',
-      'FACULTY_IN_CHARGE',
-      'OFFICER_IN_CHARGE',
-      'INCUBATION_MANAGER',
-      'ACCOUNTANT'
+      "ADMIN",
+      "CEO",
+      "FACULTY_IN_CHARGE",
+      "OFFICER_IN_CHARGE",
+      "INCUBATION_MANAGER",
+      "ACCOUNTANT",
     ];
     const isUserManagement = managementRoles.includes(req.user.role);
 
@@ -70,10 +70,7 @@ router.get("/", protect, async (req, res) => {
     const activities = [];
     if (isUserManagement) {
       const attendanceWithUsers = await Attendance.find({ date: today })
-        .populate(
-          "user",
-          "username profile.firstName profile.lastName"
-        )
+        .populate("user", "username profile.firstName profile.lastName")
         .sort({ checkInTime: -1 })
         .limit(3);
 
@@ -104,7 +101,9 @@ router.get("/", protect, async (req, res) => {
 
       for (const leave of recentLeaves) {
         const name = leave.user?.profile?.firstName
-          ? `${leave.user.profile.firstName} ${leave.user.profile.lastName || ""}`
+          ? `${leave.user.profile.firstName} ${
+              leave.user.profile.lastName || ""
+            }`
           : leave.user?.username;
         if (leave.status === "approved") {
           activities.push({
