@@ -2,6 +2,11 @@
  * Central Roles Configuration
  * This file is the single source of truth for all roles in the system
  * Update roles here and they will be reflected throughout the application
+ * 
+ * LEVEL-BASED ACCESS CONTROL:
+ * - Roles now inherit permissions from their hierarchy level
+ * - Changes to levels cascade to all roles at that level
+ * - Roles can have specific overrides
  */
 
 // ============= ROLE DEFINITIONS =============
@@ -36,6 +41,36 @@ const getAllValidRoles = async () => {
 };
 
 /**
+ * Get role hierarchy levels from database
+ * @returns {Promise<Object>} Object mapping role IDs to hierarchy levels
+ */
+const getRoleHierarchy = async () => {
+    try {
+        const RolePermission = require('../models/RolePermission');
+        const roles = await RolePermission.find({ isActive: true }).select('roleId hierarchyLevel');
+        
+        const hierarchy = {};
+        roles.forEach(role => {
+            hierarchy[role.roleId] = role.hierarchyLevel;
+        });
+        
+        return hierarchy;
+    } catch (error) {
+        console.warn('Could not fetch role hierarchy from database');
+        // Fallback to default hierarchy
+        return {
+            ADMIN: 0,
+            OFFICER_IN_CHARGE: 1,
+            FACULTY_IN_CHARGE: 1,
+            CEO: 2,
+            INCUBATION_MANAGER: 3,
+            ACCOUNTANT: 3,
+            EMPLOYEE: 4
+        };
+    }
+};
+
+/**
  * Validate if a role is valid
  * @param {string} role - The role to validate
  * @returns {Promise<boolean>}
@@ -60,6 +95,7 @@ const roleEnumValidator = {
 module.exports = {
     SYSTEM_ROLES,
     getAllValidRoles,
+    getRoleHierarchy,
     isValidRole,
     roleEnumValidator
 };

@@ -84,10 +84,10 @@ router.post('/roles', protect, isAdmin, async (req, res) => {
  */
 router.put('/roles/:roleId', protect, isAdmin, async (req, res) => {
     try {
-        const { displayName, hierarchyLevel, description, componentAccess, featureAccess, isActive } = req.body;
+        const { displayName, hierarchyLevel, description, componentAccess, featureAccess, isActive, applyToLevel } = req.body;
         
         console.log('Updating role:', req.params.roleId);
-        console.log('Request body:', { displayName, hierarchyLevel, description, componentAccess, featureAccess, isActive });
+        console.log('Request body:', { displayName, hierarchyLevel, description, componentAccess, featureAccess, isActive, applyToLevel });
         
         const role = await RolePermission.findOne({ roleId: req.params.roleId });
         if (!role) {
@@ -96,12 +96,61 @@ router.put('/roles/:roleId', protect, isAdmin, async (req, res) => {
         
         console.log('Current role before update:', role);
         
-        // Update fields
+        // If applyToLevel is true, update the AccessLevel instead and let cascade handle roles
+        if (applyToLevel === true && hierarchyLevel !== undefined) {
+            const AccessLevel = require('../models/AccessLevel');
+            
+            // Find or create the access level
+            let accessLevel = await AccessLevel.findOne({ level: hierarchyLevel });
+            
+            if (!accessLevel) {
+                // Create new access level if it doesn't exist
+                accessLevel = new AccessLevel({
+                    level: hierarchyLevel,
+                    levelName: `Level ${hierarchyLevel}`,
+                    description: `Access level ${hierarchyLevel}`,
+                    componentAccess: componentAccess || [],
+                    featureAccess: featureAccess || []
+                });
+            } else {
+                // Update existing access level
+                if (componentAccess !== undefined) accessLevel.componentAccess = componentAccess;
+                if (featureAccess !== undefined) accessLevel.featureAccess = featureAccess;
+            }
+            
+            await accessLevel.save();
+            console.log('Access level updated:', accessLevel);
+            
+            // Fetch the updated role after cascade
+            const updatedRole = await RolePermission.findOne({ roleId: req.params.roleId });
+            
+            return res.json({ 
+                success: true, 
+                role: updatedRole, 
+                message: 'Access level updated successfully. Changes cascaded to all roles at this level.' 
+            });
+        }
+        
+        // Normal role update (doesn't affect level)
         if (displayName !== undefined) role.displayName = displayName;
         if (hierarchyLevel !== undefined) role.hierarchyLevel = hierarchyLevel;
         if (description !== undefined) role.description = description;
-        if (componentAccess !== undefined) role.componentAccess = componentAccess;
-        if (featureAccess !== undefined) role.featureAccess = featureAccess;
+        if (componentAccess !== undefined) {
+            role.componentAccess = componentAccess;
+            // Mark component permissions as role-specific
+            role.componentAccess = role.componentAccess.map(comp => ({
+                ...comp,
+                roleSpecific: true
+            }));
+        }
+        if (featureAccess !== undefined) {
+            role.featureAccess = featureAccess;
+            // Mark feature permissions as role-specific
+            role.featureAccess = role.featureAccess.map(feat => ({
+                ...feat,
+                roleSpecific: true
+            }));
+        }
         if (isActive !== undefined) role.isActive = isActive;
         
         await role.save();

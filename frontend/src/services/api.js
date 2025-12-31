@@ -581,7 +581,99 @@ export const adminAPI = {
         const response = await fetch(`${API_URL}/admin/user-permissions/${roleId}`, {
             headers: { ...getAuthHeader() }
         });
+        return response.json();    },
+
+    // Level Management (Level-Based Access Control)
+    getLevels: async () => {
+        const response = await fetch(`${API_URL}/levels`, {
+            headers: { ...getAuthHeader() }
+        });
         return response.json();
-    }
+    },
+
+    getLevel: async (level) => {
+        const response = await fetch(`${API_URL}/levels/${level}`, {
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    },
+
+    createLevel: async (levelData) => {
+        const response = await fetch(`${API_URL}/levels`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify(levelData)
+        });
+        return response.json();
+    },
+
+    updateLevel: async (level, levelData) => {
+        const response = await fetch(`${API_URL}/levels/${level}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify(levelData)
+        });
+        return response.json();
+    },
+
+    updateLevelComponent: async (level, componentId, hasAccess) => {
+        const response = await fetch(`${API_URL}/levels/${level}/component/${componentId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify({ hasAccess })
+        });
+        return response.json();
+    },
+
+    updateLevelFeature: async (level, featureId, hasAccess) => {
+        const response = await fetch(`${API_URL}/levels/${level}/feature/${featureId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify({ hasAccess })
+        });
+        return response.json();
+    },
+
+    getAffectedRoles: async (level) => {
+        const response = await fetch(`${API_URL}/levels/${level}/affected-roles`, {
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    },
+
+    applyLevelToRole: async (level, roleId) => {
+        const response = await fetch(`${API_URL}/levels/${level}/apply-to-role/${roleId}`, {
+            method: 'PUT',
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    },
+
+    toggleLevelCascade: async (level) => {
+        const response = await fetch(`${API_URL}/levels/${level}/toggle-cascade`, {
+            method: 'PUT',
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    },
+
+    deleteLevel: async (level) => {
+        const response = await fetch(`${API_URL}/levels/${level}`, {
+            method: 'DELETE',
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();    }
 };
 

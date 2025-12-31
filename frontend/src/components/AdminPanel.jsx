@@ -5,12 +5,14 @@ import {
 } from 'lucide-react';
 import { adminAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import LevelManagement from './LevelManagement';
 import './AdminPanel.css';
 
 const AdminPanel = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('roles');
     const [roles, setRoles] = useState([]);
+    const [levels, setLevels] = useState([]);
     const [components, setComponents] = useState([]);
     const [features, setFeatures] = useState([]);
     const [roleGroups, setRoleGroups] = useState([]);
@@ -21,6 +23,7 @@ const AdminPanel = () => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [notification, setNotification] = useState(null);
     const [showRoleGroupHelper, setShowRoleGroupHelper] = useState(false);
+    const [applyToLevel, setApplyToLevel] = useState(false);
     
     const [editForm, setEditForm] = useState({
         roleId: '',
@@ -39,13 +42,15 @@ const AdminPanel = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [rolesData, componentsData, statsData] = await Promise.all([
+            const [rolesData, levelsData, componentsData, statsData] = await Promise.all([
                 adminAPI.getRoles(),
+                adminAPI.getLevels(),
                 adminAPI.getComponents(),
                 adminAPI.getStats()
             ]);
             
             if (rolesData.success) setRoles(rolesData.roles);
+            if (levelsData.success) setLevels(levelsData.levels || []);
             if (componentsData.success) {
                 console.log('Components data received:', componentsData);
                 console.log('Features from backend:', componentsData.features);
@@ -189,12 +194,21 @@ const AdminPanel = () => {
     const handleSaveRole = async () => {
         try {
             console.log('Saving role with data:', editForm);
-            const response = await adminAPI.updateRole(editForm.roleId, editForm);
+            const response = await adminAPI.updateRole(editForm.roleId, {
+                ...editForm,
+                applyToLevel // Send flag to update level if checked
+            });
             console.log('Update response:', response);
             if (response.success) {
-                showNotification('Role updated successfully', 'success');
+                showNotification(
+                    applyToLevel 
+                        ? 'Role and level updated successfully' 
+                        : 'Role updated successfully', 
+                    'success'
+                );
                 fetchData();
                 setIsEditing(false);
+                setApplyToLevel(false);
                 setSelectedRole(response.role);
             } else {
                 showNotification(response.message || 'Failed to update role', 'error');
@@ -297,7 +311,7 @@ const AdminPanel = () => {
                     <Shield size={32} className="admin-icon" />
                     <div>
                         <h1>Admin Panel</h1>
-                        <p>Manage roles and permissions</p>
+                        <p>Manage roles, levels, and permissions</p>
                     </div>
                 </div>
                 <div className="admin-header-right">
@@ -305,11 +319,31 @@ const AdminPanel = () => {
                         <RefreshCw size={18} />
                         Refresh
                     </button>
-                    <button className="admin-btn admin-btn-primary" onClick={() => setShowAddModal(true)}>
-                        <Plus size={18} />
-                        New Role
-                    </button>
+                    {activeTab === 'roles' && (
+                        <button className="admin-btn admin-btn-primary" onClick={() => setShowAddModal(true)}>
+                            <Plus size={18} />
+                            New Role
+                        </button>
+                    )}
                 </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="admin-tabs">
+                <button 
+                    className={`admin-tab ${activeTab === 'roles' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('roles')}
+                >
+                    <Shield size={18} />
+                    Role Management
+                </button>
+                <button 
+                    className={`admin-tab ${activeTab === 'levels' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('levels')}
+                >
+                    <Users size={18} />
+                    Level Management
+                </button>
             </div>
 
             {/* Stats Cards */}
@@ -354,18 +388,19 @@ const AdminPanel = () => {
                 </div>
             )}
 
-            {/* Main Content */}
-            <div className="admin-content-grid">
-                {/* Roles List */}
-                <div className="admin-card roles-list-card">
-                    <div className="card-header">
-                        <h2>Roles</h2>
-                        <button className="admin-btn-icon" onClick={handleInitialize} title="Initialize Default Roles">
-                            <Database size={18} />
-                        </button>
-                    </div>
-                    <div className="roles-list">
-                        {roles.map((role) => (
+            {/* Main Content - Roles Tab */}
+            {activeTab === 'roles' && (
+                <div className="admin-content-grid">
+                    {/* Roles List */}
+                    <div className="admin-card roles-list-card">
+                        <div className="card-header">
+                            <h2>Roles</h2>
+                            <button className="admin-btn-icon" onClick={handleInitialize} title="Initialize Default Roles">
+                                <Database size={18} />
+                            </button>
+                        </div>
+                        <div className="roles-list">
+                            {roles.map((role) => (
                             <div
                                 key={role.roleId}
                                 className={`role-item ${selectedRole?.roleId === role.roleId ? 'active' : ''}`}
@@ -400,8 +435,25 @@ const AdminPanel = () => {
                                 <div className="card-actions">
                                     {isEditing ? (
                                         <>
+                                            <div className="apply-to-level-option" style={{ marginBottom: '10px', padding: '8px', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
+                                                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '14px' }}>
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={applyToLevel}
+                                                        onChange={(e) => setApplyToLevel(e.target.checked)}
+                                                        style={{ marginRight: '8px', cursor: 'pointer' }}
+                                                    />
+                                                    <span>Apply changes to access level (affects all roles at this level)</span>
+                                                </label>
+                                                {applyToLevel && (
+                                                    <small style={{ marginLeft: '24px', color: '#dc3545', display: 'block', marginTop: '4px' }}>
+                                                        ⚠️ This will update the level permissions and cascade to all roles at level {editForm.hierarchyLevel}
+                                                    </small>
+                                                )}
+                                            </div>
                                             <button className="admin-btn admin-btn-secondary" onClick={() => {
                                                 setIsEditing(false);
+                                                setApplyToLevel(false);
                                                 handleSelectRole(selectedRole);
                                             }}>
                                                 <X size={18} />
@@ -645,7 +697,18 @@ const AdminPanel = () => {
                         </div>
                     )}
                 </div>
-            </div>
+                </div>
+            )}
+
+            {/* Main Content - Levels Tab */}
+            {activeTab === 'levels' && (
+                <LevelManagement 
+                    levels={levels}
+                    components={components}
+                    features={features}
+                    onUpdate={fetchData}
+                />
+            )}
 
             {/* Add Role Modal */}
             {showAddModal && (

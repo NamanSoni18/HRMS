@@ -31,6 +31,7 @@ app.use('/api/variable-remuneration', require('./routes/variableRemuneration'));
 app.use('/api/remuneration', require('./routes/remuneration'));
 app.use('/api/holidays', require('./routes/holidays'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/levels', require('./routes/levels')); // Level-Based Access Control
 
 app.get('/', (req, res) => {
     res.json({ message: 'HRMS API - NITRRFIE' });

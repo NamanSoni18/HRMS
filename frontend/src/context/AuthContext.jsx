@@ -173,6 +173,28 @@ export const AuthProvider = ({ children }) => {
     return roleHierarchy[roleId] ?? 99;
   };
 
+  // Level-Based Access Control helpers
+  const hasLevelAccess = (requiredLevel) => {
+    if (!user) return false;
+    const userLevel = getRoleHierarchyLevel(user.role);
+    return userLevel <= requiredLevel;
+  };
+
+  const getRolesAtLevel = (level) => {
+    return systemRoles.filter(role => roleHierarchy[role] === level);
+  };
+
+  const getLevelName = (level) => {
+    const levelNames = {
+      0: 'Super Admin',
+      1: 'Senior Management',
+      2: 'Middle Management',
+      3: 'Department Management',
+      4: 'Staff'
+    };
+    return levelNames[level] || `Level ${level}`;
+  };
+
   const canAccessComponent = (componentId) => {
     if (!user || !userPermissions.componentAccess) return false;
     return userPermissions.componentAccess.includes(componentId);
@@ -203,6 +225,10 @@ export const AuthProvider = ({ children }) => {
       getSubordinates: () => (user ? getSubordinateRoles(user.role) : []),
       getRoleDisplayName,
       getRoleHierarchyLevel,
+      // Level-based access control
+      hasLevelAccess,
+      getRolesAtLevel,
+      getLevelName,
       canAccessComponent,
       canAccessFeature,
       // Backward compatibility
