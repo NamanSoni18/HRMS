@@ -9,6 +9,10 @@ import { employeeRemunerationData } from "../data/employeeSalaryData";
 
 const PaySlip = () => {
   const { user, canAccessFeature } = useAuth();
+
+  // Get current month and year
+  const currentDate = new Date();
+
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,13 +20,15 @@ const PaySlip = () => {
   const [searchName, setSearchName] = useState("");
   const contentRef = useRef(null);
 
+  // Selected month/year for pay slip generation
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [hasDataForSelectedMonth, setHasDataForSelectedMonth] = useState(true);
+
   // Use database permissions
   const canViewAllSalaries = canAccessFeature("salary.viewAll");
   const canViewOwnSalary = canAccessFeature("salary.viewOwn");
   const canEditSalary = canAccessFeature("salary.edit");
-
-  // Get current month and year
-  const currentDate = new Date();
   const monthNames = [
     "January",
     "February",
@@ -49,18 +55,14 @@ const PaySlip = () => {
 
   // Calculate month data
   useEffect(() => {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth();
-
     // Calculate total days in month
-    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
     setTotalDaysInMonth(daysInMonth);
 
     // Calculate weekend days
     let weekendCount = 0;
     for (let day = 1; day <= daysInMonth; day++) {
-      const dayOfWeek = new Date(currentYear, currentMonth, day).getDay();
+      const dayOfWeek = new Date(selectedYear, selectedMonth, day).getDay();
       if (dayOfWeek === 0 || dayOfWeek === 6) {
         weekendCount++;
       }
@@ -94,9 +96,9 @@ const PaySlip = () => {
       "Nov",
       "Dec",
     ];
-    const currentMonthAbbr = monthAbbreviations[currentMonth];
-    setCurrentMonthHolidays(month_per_holiday[currentMonthAbbr] || 0);
-  }, []);
+    const selectedMonthAbbr = monthAbbreviations[selectedMonth];
+    setCurrentMonthHolidays(month_per_holiday[selectedMonthAbbr] || 0);
+  }, [selectedMonth, selectedYear]);
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -370,17 +372,13 @@ const PaySlip = () => {
       if (!selectedEmployee) return;
 
       try {
-        const currentDate = new Date();
-        const currentYear = currentDate.getFullYear();
-        const currentMonth = currentDate.getMonth();
-
         // Fetch attendance
         const attendanceResponse = await fetch(
           `${
             import.meta.env.VITE_API_URL || "http://localhost:5000"
           }/api/attendance/user/${selectedEmployee.id}?month=${
-            currentMonth + 1
-          }&year=${currentYear}`,
+            selectedMonth + 1
+          }&year=${selectedYear}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -389,7 +387,7 @@ const PaySlip = () => {
         );
         const attendanceData = await attendanceResponse.json();
 
-        if (attendanceData.success) {
+        if (attendanceData.success && attendanceData.attendance.length > 0) {
           const presentCount = attendanceData.attendance.filter(
             (a) => a.status === "present" || a.status === "late"
           ).length;
@@ -403,11 +401,16 @@ const PaySlip = () => {
           setAttendanceHalfDays({
             [selectedEmployee.employeeId]: halfCount,
           });
+          setHasDataForSelectedMonth(true);
+        } else {
+          setAttendanceData({ [selectedEmployee.employeeId]: 0 });
+          setAttendanceHalfDays({ [selectedEmployee.employeeId]: 0 });
+          setHasDataForSelectedMonth(false);
         }
 
         // Fetch leaves
-        const startOfMonth = new Date(currentYear, currentMonth, 1);
-        const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
+        const startOfMonth = new Date(selectedYear, selectedMonth, 1);
+        const endOfMonth = new Date(selectedYear, selectedMonth + 1, 0);
         const leavesResponse = await leaveAPI.getAll("approved");
 
         if (leavesResponse.success && leavesResponse.leaves) {
@@ -444,11 +447,12 @@ const PaySlip = () => {
         }
       } catch (error) {
         console.error("Failed to fetch attendance/leave data:", error);
+        setHasDataForSelectedMonth(false);
       }
     };
 
     fetchAttendanceAndLeaves();
-  }, [selectedEmployee]);
+  }, [selectedEmployee, selectedMonth, selectedYear]);
 
   if (loading) {
     return (
@@ -516,6 +520,47 @@ const PaySlip = () => {
         </div>
       )}
 
+      {selectedEmployee && (
+        <div className="month-year-selector">
+          <label>Select Month & Year:</label>
+          <div className="selector-wrapper">
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+              className="month-select"
+            >
+              {monthNames.map((month, index) => (
+                <option key={index} value={index}>
+                  {month}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              className="year-select"
+            >
+              {Array.from({ length: 10 }, (_, i) => currentYear - i).map(
+                (year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                )
+              )}
+            </select>
+            <button
+              className="generate-btn"
+              onClick={() => {
+                // Trigger re-fetch of data by updating dependencies
+                setSelectedEmployee({ ...selectedEmployee });
+              }}
+            >
+              Generate Pay Slip
+            </button>
+          </div>
+        </div>
+      )}
+
       {!canViewAllSalaries && selectedEmployee && (
         <div className="payslip-actions">
           <div className="action-buttons">
@@ -536,7 +581,19 @@ const PaySlip = () => {
         </div>
       )}
 
-      {selectedEmployee && (
+      {selectedEmployee && !hasDataForSelectedMonth && (
+        <div className="no-data-message">
+          <p>
+            No data available for {monthNames[selectedMonth]} {selectedYear}
+          </p>
+          <p>
+            Please select a different month or ensure attendance data has been
+            recorded for this period.
+          </p>
+        </div>
+      )}
+
+      {selectedEmployee && hasDataForSelectedMonth && (
         <div className="payslip-slip-container" ref={contentRef}>
           <div className="slip-header">
             <div className="logo-section">
@@ -588,8 +645,8 @@ const PaySlip = () => {
                   <strong>Month:</strong>
                 </td>
                 <td className="value-cell">
-                  {currentMonth.substring(0, 3)}-
-                  {currentYear.toString().substring(2)}
+                  {monthNames[selectedMonth].substring(0, 3)}-
+                  {selectedYear.toString().substring(2)}
                 </td>
               </tr>
               <tr>
