@@ -428,6 +428,29 @@ export const remunerationAPI = {
             headers: { ...getAuthHeader() }
         });
         return response.json();
+    },
+    
+    generate: async (month, year) => {
+        const response = await fetch(`${API_URL}/remuneration/generate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify({ month, year })
+        });
+        return response.json();
+    },
+    
+    get: async (month, year) => {
+        const monthNum = typeof month === 'string' 
+            ? ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].indexOf(month) + 1
+            : month;
+            
+        const response = await fetch(`${API_URL}/remuneration/records?month=${month}&year=${year}`, {
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
     }
 };
 

@@ -3,8 +3,8 @@ import "./Remuneration.css";
 import { useAuth } from "../context/AuthContext";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { Download, Save } from "lucide-react";
-import { usersAPI, attendanceAPI, leaveAPI } from "../services/api";
+import { Download, Save, RefreshCw } from "lucide-react";
+import { usersAPI, attendanceAPI, leaveAPI, remunerationAPI } from "../services/api";
 
 const Remuneration = () => {
   const { user, canAccessFeature } = useAuth();
@@ -99,8 +99,13 @@ const Remuneration = () => {
 
   // Fetch attendance data for all employees on mount
   useEffect(() => {
-    fetchAllEmployeesAttendance();
-    fetchAllEmployeesLeaves();
+    // First try to fetch saved remuneration data
+    fetchRemunerationData().catch(err => {
+      console.error('Error fetching remuneration data:', err);
+      // Fallback to manual attendance fetch
+      fetchAllEmployeesAttendance();
+      fetchAllEmployeesLeaves();
+    });
   }, [currentMonth, currentYear]);
 
   const [attendanceHalfDays, setAttendanceHalfDays] = useState({});
@@ -236,8 +241,15 @@ const Remuneration = () => {
           panBankDetails: record.panBankDetails || ''
         })));
       } else {
-        // No saved data, fetch users from database
-        console.log('No saved data, fetching users...');
+        // No saved data, fetch users from database and attendance manually
+        console.log('No saved data, fetching users and attendance...');
+        
+        // Fetch attendance and leaves in parallel
+        await Promise.all([
+          fetchAllEmployeesAttendance(),
+          fetchAllEmployeesLeaves()
+        ]);
+        
         const usersResponse = await usersAPI.getAll();
         
         if (usersResponse.success && usersResponse.users) {
@@ -253,7 +265,7 @@ const Remuneration = () => {
             name: `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim() || user.username,
             designation: user.employment?.designation || user.role,
             dateOfJoining: user.employment?.dateOfJoining || '',
-            grossRemuneration: user.employment?.grossRemuneration || 0,
+            grossRemuneration: user.employment?.baseSalary || 0,
             daysWorked: 0,
             casualLeave: 0,
             weeklyOff: totalWeekendDays,
@@ -261,12 +273,12 @@ const Remuneration = () => {
             lwpDays: 0,
             totalDays: totalDaysInMonth,
             payableDays: 0,
-            fixedRemuneration: (user.employment?.grossRemuneration || 0) * 0.8,
-            variableRemuneration: (user.employment?.grossRemuneration || 0) * 0.2,
-            totalRemuneration: user.employment?.grossRemuneration || 0,
+            fixedRemuneration: (user.employment?.baseSalary || 0) * 0.8,
+            variableRemuneration: (user.employment?.baseSalary || 0) * 0.2,
+            totalRemuneration: user.employment?.baseSalary || 0,
             tds: 0,
             otherDeduction: 0,
-            netPayable: user.employment?.grossRemuneration || 0,
+            netPayable: user.employment?.baseSalary || 0,
             panBankDetails: ''
           })));
         }
@@ -489,6 +501,35 @@ const Remuneration = () => {
     return { totalVariable, totalTDS, totalOther, totalNetPayable };
   };
 
+  const [generating, setGenerating] = useState(false);
+
+  const handleGenerateRecords = async () => {
+    if (!canEditRemuneration) return;
+    
+    if (!confirm(`Generate remuneration records for ${currentMonth} ${currentYear}? This will update all employee records based on current attendance data.`)) {
+      return;
+    }
+    
+    setGenerating(true);
+    try {
+      const monthNum = monthNames.indexOf(currentMonth) + 1;
+      const response = await remunerationAPI.generate(monthNum, currentYear);
+      
+      if (response.success) {
+        alert(`Successfully generated remuneration for ${response.count} employees!`);
+        // Refresh the data
+        await fetchRemunerationData();
+      } else {
+        alert(`Failed to generate records: ${response.message}`);
+      }
+    } catch (error) {
+      console.error("Generate failed:", error);
+      alert("Failed to generate records. Please try again.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!canEditRemuneration) return;
     setSaving(true);
@@ -654,14 +695,25 @@ const Remuneration = () => {
     <div className="remuneration-page-container">
       <div className="remuneration-actions">
         {canEditRemuneration && (
-          <button
-            className="action-btn save-btn"
-            onClick={handleSave}
-            disabled={saving}
-          >
-            <Save size={18} />
-            {saving ? "Saving..." : "Save Data"}
-          </button>
+          <>
+            <button
+              className="action-btn generate-btn"
+              onClick={handleGenerateRecords}
+              disabled={generating}
+              style={{ backgroundColor: '#10b981', marginRight: '10px' }}
+            >
+              <RefreshCw size={18} />
+              {generating ? "Generating..." : "Generate Records"}
+            </button>
+            <button
+              className="action-btn save-btn"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              <Save size={18} />
+              {saving ? "Saving..." : "Save Data"}
+            </button>
+          </>
         )}
         <button className="action-btn download-btn" onClick={handleDownloadPDF}>
           <Download size={18} />

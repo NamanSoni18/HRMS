@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Attendance = require('../models/Attendance');
 const User = require('../models/User');
+const Remuneration = require('../models/Remuneration');
+const VariableRemuneration = require('../models/VariableRemuneration');
 const { protect, isManagement } = require('../middleware/auth');
 
 // Indian National Holidays 2025 (Gazetted)
@@ -75,9 +77,9 @@ router.get('/attendance-summary', protect, isManagement, async (req, res) => {
         const monthNum = parseInt(month);
         const yearNum = parseInt(year);
 
-        // Get all employees (exclude FACULTY_IN_CHARGE and OFFICER_IN_CHARGE)
+        // Get all employees (exclude FACULTY_IN_CHARGE, OFFICER_IN_CHARGE, and ADMIN)
         const users = await User.find({
-            role: { $nin: ['FACULTY_IN_CHARGE', 'OFFICER_IN_CHARGE'] },
+            role: { $nin: ['FACULTY_IN_CHARGE', 'OFFICER_IN_CHARGE', 'ADMIN'] },
             isActive: true
         }).select('username profile employment role');
 
@@ -199,5 +201,227 @@ router.get('/attendance-summary', protect, isManagement, async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 });
+
+// @route   POST /api/remuneration/generate
+// @desc    Generate or update remuneration records for all employees for a month
+// @access  Management only
+router.post('/generate', protect, isManagement, async (req, res) => {
+    try {
+        const { month, year } = req.body;
+
+        if (!month || !year) {
+            return res.status(400).json({ success: false, message: 'Month and year are required' });
+        }
+
+        const monthNum = parseInt(month);
+        const yearNum = parseInt(year);
+
+        // Get all employees (exclude FACULTY_IN_CHARGE, OFFICER_IN_CHARGE, and ADMIN)
+        const users = await User.find({
+            role: { $nin: ['FACULTY_IN_CHARGE', 'OFFICER_IN_CHARGE', 'ADMIN'] },
+            isActive: true
+        }).select('employeeId username profile employment role documents bankDetails');
+
+        const startDate = new Date(Date.UTC(yearNum, monthNum - 1, 1));
+        const endDate = new Date(Date.UTC(yearNum, monthNum, 0, 23, 59, 59, 999));
+        const daysInMonth = new Date(Date.UTC(yearNum, monthNum, 0)).getUTCDate();
+
+        // Fetch attendance for all employees for the month
+        const allAttendance = await Attendance.find({
+            date: { $gte: startDate, $lte: endDate }
+        });
+
+        // Fetch variable remuneration data
+        const variableRemunerationRecords = await VariableRemuneration.find({
+            month: getMonthName(monthNum),
+            year: yearNum
+        });
+
+        const variableRemunerationMap = {};
+        variableRemunerationRecords.forEach(record => {
+            variableRemunerationMap[record.employee.toString()] = record.amount || 0;
+        });
+
+        const monthName = getMonthName(monthNum);
+        const generatedRecords = [];
+
+        // Generate remuneration for each employee
+        for (const user of users) {
+            const joiningDate = user.employment?.joiningDate
+                ? new Date(user.employment.joiningDate)
+                : null;
+
+            // Calculate start day for this employee
+            let effectiveStartDay = 1;
+            if (joiningDate && joiningDate.getUTCFullYear() === yearNum &&
+                (joiningDate.getUTCMonth() + 1) === monthNum) {
+                effectiveStartDay = joiningDate.getUTCDate();
+            } else if (joiningDate && joiningDate > endDate) {
+                // Joined after this month - skip
+                continue;
+            }
+
+            // Filter attendance for this user
+            const userAttendance = allAttendance.filter(
+                a => a.user.toString() === user._id.toString()
+            );
+
+            // Count days present (present or late)
+            const daysWorked = userAttendance.filter(
+                a => a.status === 'present' || a.status === 'late'
+            ).length;
+
+            // Count days on leave
+            const fullLeaveCount = userAttendance.filter(
+                a => a.status === 'on-leave'
+            ).length;
+
+            const halfDayCount = userAttendance.filter(
+                a => a.status === 'half-day'
+            ).length;
+
+            const casualLeave = fullLeaveCount + (halfDayCount * 0.5);
+
+            // Count days absent
+            const daysAbsent = userAttendance.filter(
+                a => a.status === 'absent'
+            ).length;
+
+            // Calculate weekends and holidays
+            const weeklyOffs = countWeekends(yearNum, monthNum, effectiveStartDay);
+            const holidays = countHolidays(yearNum, monthNum, effectiveStartDay);
+
+            // Total working days for this employee
+            const totalDaysForEmployee = daysInMonth - effectiveStartDay + 1;
+
+            // LWP = days absent
+            const lwpDays = daysAbsent;
+
+            // Payable days = Total days - LWP
+            const payableDays = totalDaysForEmployee - lwpDays;
+
+            // Calculate remuneration
+            const baseSalary = user.employment?.baseSalary || 0;
+            const grossRemuneration = baseSalary;
+            const fixedRemuneration = baseSalary * 0.8; // 80% fixed
+            const variableRemunerationAmount = variableRemunerationMap[user._id.toString()] || (baseSalary * 0.2); // 20% variable
+            const totalRemuneration = fixedRemuneration + variableRemunerationAmount;
+            
+            // Calculate net payable based on payable days
+            const perDayAmount = totalRemuneration / totalDaysForEmployee;
+            const netPayable = perDayAmount * payableDays;
+
+            // Format PAN and Bank details
+            const panBankDetails = formatPANBankDetails(user);
+            
+            // Format name
+            const name = `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim() || user.username;
+            const designation = user.employment?.designation || user.role;
+
+            // Create or update remuneration record
+            const remunerationData = {
+                employee: user._id,
+                employeeId: user.employeeId,
+                name: name,
+                designation: designation,
+                month: monthName,
+                year: yearNum,
+                grossRemuneration,
+                daysWorked,
+                casualLeave,
+                weeklyOff: weeklyOffs,
+                holidays,
+                lwpDays,
+                totalDays: totalDaysForEmployee,
+                payableDays,
+                fixedRemuneration,
+                variableRemuneration: variableRemunerationAmount,
+                totalRemuneration,
+                tds: 0,
+                otherDeduction: 0,
+                netPayable: Math.round(netPayable),
+                panBankDetails
+            };
+
+            const remuneration = await Remuneration.findOneAndUpdate(
+                { employee: user._id, month: monthName, year: yearNum },
+                remunerationData,
+                { upsert: true, new: true }
+            );
+
+            generatedRecords.push(remuneration);
+        }
+
+        res.json({
+            success: true,
+            message: `Remuneration generated for ${generatedRecords.length} employees`,
+            count: generatedRecords.length
+        });
+
+    } catch (error) {
+        console.error('Remuneration generation error:', error);
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+});
+
+// @route   GET /api/remuneration/records
+// @desc    Get all remuneration records for a month
+// @access  Management only
+router.get('/records', protect, isManagement, async (req, res) => {
+    try {
+        const { month, year } = req.query;
+
+        if (!month || !year) {
+            return res.status(400).json({ success: false, message: 'Month and year are required' });
+        }
+
+        const records = await Remuneration.find({
+            month: month,
+            year: parseInt(year)
+        }).populate('employee', 'username profile employeeId employment');
+
+        // Format records with proper employee names
+        const formattedRecords = records.map(record => {
+            const recordObj = record.toObject();
+            
+            // If name is not stored, get it from populated employee
+            if (!recordObj.name && recordObj.employee) {
+                recordObj.name = `${recordObj.employee.profile?.firstName || ''} ${recordObj.employee.profile?.lastName || ''}`.trim() || recordObj.employee.username;
+            }
+            
+            // If designation is not stored, get it from populated employee
+            if (!recordObj.designation && recordObj.employee) {
+                recordObj.designation = recordObj.employee.employment?.designation || recordObj.employee.role;
+            }
+            
+            return recordObj;
+        });
+
+        res.json({ success: true, records: formattedRecords });
+    } catch (error) {
+        console.error('Fetch remuneration records error:', error);
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+});
+
+// Helper function to get month name
+function getMonthName(monthNum) {
+    const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return months[monthNum - 1];
+}
+
+// Helper function to format PAN and Bank details
+function formatPANBankDetails(user) {
+    const pan = user.documents?.pan?.number || 'N/A';
+    const bankName = user.bankDetails?.bankName || 'N/A';
+    const branch = user.bankDetails?.branch || '';
+    const accountNumber = user.bankDetails?.accountNumber || 'N/A';
+    const ifscCode = user.bankDetails?.ifscCode || 'N/A';
+    
+    return `PAN: ${pan}\nBANK: ${bankName},\n${branch}\nA/C: ${accountNumber}\nIFSC: ${ifscCode}`;
+}
 
 module.exports = router;
