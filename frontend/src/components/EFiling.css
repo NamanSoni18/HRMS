@@ -208,19 +208,21 @@
 
 .dropdown-item .emp-details {
     flex: 1;
+    text-align: center;
 }
 
 .dropdown-item .emp-name {
     display: block;
-    font-weight: 500;
-    color: var(--text-dark);
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    color: var(--text-light);
+    
 }
 
 .dropdown-item .emp-role {
     display: block;
-    font-size: 0.8rem;
-    color: var(--text-light);
+    font-weight: 500;
+    color: var(--text-dark);
+    font-size: 1.1rem;
 }
 
 .no-results {
