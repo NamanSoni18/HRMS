@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { efilingAPI, usersAPI } from '../services/api';
+import { filterUsersByLevel } from '../constants/roles';
 import './EFiling.css';
 
 const EFiling = () => {
@@ -52,8 +53,11 @@ const EFiling = () => {
     const fetchEmployees = async () => {
         try {
             const data = await usersAPI.getForPeerRating();
+            console.log("Users: ", data.users);
             if (data.success) {
-                const others = data.users.filter(emp =>
+                // Filter users: exclude current user and include only level 2 and above
+                const filteredByLevel = filterUsersByLevel(data.users, 2);
+                const others = filteredByLevel.filter(emp =>
                     emp._id !== user?.id && emp.username !== user?.username
                 );
                 setEmployees(others);
@@ -266,8 +270,8 @@ const EFiling = () => {
                                             >
                                                 <div className="emp-avatar">{getEmployeeName(emp).charAt(0)}</div>
                                                 <div className="emp-details">
-                                                    <span className="emp-name">{getEmployeeName(emp)}</span>
                                                     <span className="emp-role">{emp.employment?.designation || emp.role}</span>
+                                                    <span className="emp-name">{getEmployeeName(emp)}</span>
                                                 </div>
                                                 {selectedRecipient === emp._id && <Check size={16} />}
                                             </div>
